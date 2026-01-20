@@ -3,75 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PHS One Act Play | Official Calendar</title>
+    <title>Poth OAP | Official Schedule & Absence Portal</title>
 
-    <!-- External Libraries -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+    <!-- 
+    ================================================================
+    EXTERNAL DEPENDENCIES 
+    ================================================================
+    -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- FullCalendar Library -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    
+    <!-- Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         /* 
-        ========================================
-        CSS CUSTOM PROPERTIES (THEMING)
-        ========================================
+        ================================================================
+        1. CSS VARIABLES & THEMING (POTH ISD COLORS: MAROON & GOLD)
+        ================================================================
         */
         :root {
+            /* Primary School Colors */
             --poth-maroon: #7B1113;
+            --poth-maroon-light: #9B1A1C;
             --poth-maroon-dark: #5a0c0e;
             --poth-gold: #FFD700;
             --poth-gold-dark: #ccac00;
+            
+            /* UI Colors */
             --white: #ffffff;
             --off-white: #f8f9fa;
-            --text-main: #2d3436;
+            --canvas-bg: #f0f2f5;
+            --text-dark: #2d3436;
             --text-muted: #636e72;
-            --shadow-sm: 0 2px 5px rgba(0,0,0,0.1);
-            --shadow-md: 0 4px 15px rgba(0,0,0,0.1);
-            --shadow-lg: 0 10px 30px rgba(0,0,0,0.15);
-            --radius-md: 12px;
-            --radius-lg: 20px;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-            /* Event Types Colors */
+            --border-color: #edeff2;
+            
+            /* Event Categorization Colors */
             --color-absence: #ff7675;
             --color-practice: #74b9ff;
             --color-rehearsal: #55efc4;
             --color-clinic: #a29bfe;
+
+            /* Effects */
+            --shadow-sm: 0 2px 5px rgba(0,0,0,0.05);
+            --shadow-md: 0 8px 15px rgba(0,0,0,0.08);
+            --shadow-lg: 0 15px 35px rgba(0,0,0,0.12);
+            --radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         /* 
-        ========================================
-        BASE STYLES & RESET
-        ========================================
+        ================================================================
+        2. BASE STYLES
+        ================================================================
         */
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Outfit', sans-serif;
-            background-color: var(--off-white);
-            color: var(--text-main);
+            background-color: var(--canvas-bg);
+            color: var(--text-dark);
             line-height: 1.6;
-            overflow-x: hidden;
+            min-height: 100vh;
         }
-
-        button, input, select, textarea { font-family: inherit; }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 25px;
         }
 
+        ul { list-style: none; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--canvas-bg); }
+        ::-webkit-scrollbar-thumb { background: var(--poth-maroon-dark); border-radius: 4px; }
+
         /* 
-        ========================================
-        HEADER SECTION
-        ========================================
+        ================================================================
+        3. HEADER & NAVIGATION
+        ================================================================
         */
         header {
             background-color: var(--poth-maroon);
             color: var(--white);
-            padding: 1.5rem 0;
+            padding: 1.25rem 0;
             border-bottom: 6px solid var(--poth-gold);
             position: sticky;
             top: 0;
@@ -79,45 +99,47 @@
             box-shadow: var(--shadow-md);
         }
 
-        .header-grid {
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
+        .header-content {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
         }
 
-        .header-left .date-display {
-            font-weight: 500;
-            opacity: 0.9;
-        }
-
-        .header-center h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.2rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin: 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .header-right {
+        .brand {
             display: flex;
-            justify-content: flex-end;
+            align-items: center;
             gap: 15px;
         }
 
+        .brand i { font-size: 1.8rem; color: var(--poth-gold); }
+
+        .brand h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
         /* 
-        ========================================
-        BUTTONS
-        ========================================
+        ================================================================
+        4. BUTTONS & UI ELEMENTS
+        ================================================================
         */
         .btn {
             padding: 12px 24px;
-            border-radius: var(--radius-md);
+            border-radius: 12px;
             font-weight: 700;
-            cursor: pointer;
             border: none;
+            cursor: pointer;
             transition: var(--transition);
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 10px;
             text-transform: uppercase;
@@ -125,292 +147,251 @@
             letter-spacing: 0.5px;
         }
 
-        .btn-gold {
-            background-color: var(--poth-gold);
-            color: var(--poth-maroon);
-        }
+        .btn-gold { background: var(--poth-gold); color: var(--poth-maroon); }
+        .btn-gold:hover { background: var(--poth-gold-dark); transform: translateY(-2px); }
 
-        .btn-gold:hover {
-            background-color: var(--poth-gold-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
-        }
+        .btn-outline { background: transparent; border: 2px solid var(--poth-gold); color: var(--poth-gold); }
+        .btn-outline:hover { background: var(--poth-gold); color: var(--poth-maroon); }
 
-        .btn-outline {
-            background: transparent;
-            border: 2px solid var(--poth-gold);
-            color: var(--poth-gold);
-        }
-
-        .btn-outline:hover {
-            background-color: rgba(255, 215, 0, 0.1);
-        }
-
-        .btn-maroon {
-            background-color: var(--poth-maroon);
-            color: var(--white);
-        }
-
-        .btn-danger {
-            background-color: #d63031;
-            color: white;
-        }
+        .btn-danger { background: #ff4757; color: white; }
+        .btn-danger:hover { background: #ff6b81; }
 
         /* 
-        ========================================
-        MAIN LAYOUT
-        ========================================
+        ================================================================
+        5. MAIN LAYOUT
+        ================================================================
         */
         main {
             padding: 40px 0;
             display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 30px;
+            grid-template-columns: 320px 1fr;
+            gap: 35px;
         }
 
         @media (max-width: 1024px) {
             main { grid-template-columns: 1fr; }
         }
 
-        /* 
-        ========================================
-        SIDEBAR
-        ========================================
-        */
-        .sidebar-card {
+        .sidebar-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .card {
             background: var(--white);
-            padding: 25px;
-            border-radius: var(--radius-lg);
+            border-radius: var(--radius);
+            padding: 24px;
             box-shadow: var(--shadow-md);
-            margin-bottom: 25px;
         }
 
-        .sidebar-card h3 {
-            margin-bottom: 20px;
+        .card h3 {
+            margin-bottom: 18px;
             color: var(--poth-maroon);
-            border-bottom: 2px solid var(--off-white);
-            padding-bottom: 10px;
             font-weight: 800;
-        }
-
-        .legend-item {
+            font-size: 1.1rem;
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-            font-weight: 500;
+            gap: 10px;
+            border-bottom: 2px solid var(--canvas-bg);
+            padding-bottom: 12px;
         }
 
-        .dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-        }
-
-        .dot.absence { background: var(--color-absence); }
-        .dot.practice { background: var(--color-practice); }
-        .dot.rehearsal { background: var(--color-rehearsal); }
-        .dot.clinic { background: var(--color-clinic); }
-
-        .view-switcher {
+        /* 
+        ================================================================
+        6. SIDEBAR CONTROLS
+        ================================================================
+        */
+        .view-toggle-list {
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
 
-        .switcher-btn {
+        .toggle-item {
             background: var(--off-white);
             border: 2px solid transparent;
-            padding: 15px;
-            border-radius: var(--radius-md);
-            text-align: left;
+            padding: 16px;
+            border-radius: 12px;
             cursor: pointer;
             transition: var(--transition);
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        .switcher-btn.active {
-            border-color: var(--poth-maroon);
-            background: white;
-            color: var(--poth-maroon);
-            font-weight: 700;
-        }
-
-        /* 
-        ========================================
-        CALENDAR CONTAINER
-        ========================================
-        */
-        #content-area {
-            background: var(--white);
-            padding: 30px;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-lg);
-            min-height: 800px;
-        }
-
-        /* FullCalendar Customizations */
-        .fc { --fc-button-bg-color: var(--poth-maroon); --fc-button-border-color: var(--poth-maroon); --fc-button-hover-bg-color: var(--poth-maroon-dark); --fc-today-bg-color: rgba(255, 215, 0, 0.1); }
-        .fc-toolbar-title { font-weight: 800 !important; color: var(--poth-maroon); }
-        .fc-col-header-cell { background: var(--poth-maroon); color: white !important; padding: 10px 0 !important; }
-        .fc-event { border: none !important; border-radius: 6px !important; padding: 5px 8px !important; cursor: pointer; transition: transform 0.2s; }
-        .fc-event:hover { transform: scale(1.02); }
-        
-        .event-absence { background-color: var(--color-absence) !important; color: white !important; }
-        .event-practice { background-color: var(--color-practice) !important; color: white !important; }
-        .event-rehearsal { background-color: var(--color-rehearsal) !important; color: white !important; }
-        .event-clinic { background-color: var(--color-clinic) !important; color: white !important; }
-
-        /* 
-        ========================================
-        MODALS
-        ========================================
-        */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            padding: 20px;
-        }
-
-        .modal-content {
-            background: var(--white);
-            width: 100%;
-            max-width: 550px;
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-            animation: modalSlide 0.4s ease-out;
-            position: relative;
-        }
-
-        @keyframes modalSlide {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .modal-header {
-            background: var(--poth-maroon);
-            color: white;
-            padding: 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-header h2 { margin: 0; font-family: 'Playfair Display', serif; }
-
-        .modal-body { padding: 30px; }
-
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main); }
-        .form-group input, 
-        .form-group select, 
-        .form-group textarea {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #edeff2;
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: var(--transition);
-        }
-
-        .form-group input:focus { border-color: var(--poth-maroon); outline: none; }
-
-        .modal-footer {
-            padding: 20px 30px;
-            background: #fdfdfd;
-            border-top: 1px solid #eee;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        /* 
-        ========================================
-        DIRECTOR MODE UI
-        ========================================
-        */
-        .director-only { display: none !important; }
-        body.mode-director .director-only { display: flex !important; }
-        body.mode-director .members-only { display: none !important; }
-        body.mode-director header { background-color: #1a1a1a; }
-
-        /* 
-        ========================================
-        OTHER COMPONENTS
-        ========================================
-        */
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            padding: 16px 28px;
-            background: #2d3436;
-            color: white;
-            border-radius: 12px;
-            z-index: 9999;
-            display: none;
-            box-shadow: var(--shadow-lg);
-            animation: toastIn 0.3s ease;
-        }
-
-        @keyframes toastIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-
-        .empty-state {
-            text-align: center;
-            padding: 100px 0;
+            font-weight: 600;
             color: var(--text-muted);
         }
 
-        .list-view-container {
+        .toggle-item.active {
+            background: white;
+            border-color: var(--poth-maroon);
+            color: var(--poth-maroon);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .legend-card .item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+            font-weight: 500;
+        }
+
+        .dot { width: 14px; height: 14px; border-radius: 50%; }
+
+        /* 
+        ================================================================
+        7. CALENDAR & SCHEDULE LIST
+        ================================================================
+        */
+        #content-area {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow-lg);
+            min-height: 850px;
+        }
+
+        #calendar { height: 100%; min-height: 750px; }
+
+        /* FullCalendar Customizations */
+        .fc { --fc-button-bg-color: var(--poth-maroon); --fc-button-border-color: var(--poth-maroon); }
+        .fc-toolbar-title { font-weight: 800 !important; font-size: 1.6rem !important; color: var(--poth-maroon); }
+        .fc-col-header-cell { background: var(--poth-maroon); color: white !important; font-weight: 600 !important; padding: 12px 0 !important; }
+        .fc-day-today { background: rgba(255, 215, 0, 0.08) !important; }
+
+        /* Event Specific Backgrounds */
+        .event-absence { background-color: var(--color-absence) !important; border: none !important; color: white !important; }
+        .event-practice { background-color: var(--color-practice) !important; border: none !important; color: white !important; }
+        .event-rehearsal { background-color: var(--color-rehearsal) !important; border: none !important; color: white !important; }
+        .event-clinic { background-color: var(--color-clinic) !important; border: none !important; color: white !important; }
+
+        .schedule-list-view {
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
 
-        .schedule-item {
-            padding: 20px;
-            border-left: 8px solid var(--poth-maroon);
-            background: var(--off-white);
-            border-radius: 8px;
+        .list-item {
             display: grid;
             grid-template-columns: 120px 1fr auto;
             align-items: center;
+            padding: 22px;
+            background: var(--canvas-bg);
+            border-radius: 14px;
+            border-left: 8px solid var(--poth-maroon);
             transition: var(--transition);
         }
 
-        .schedule-item:hover { transform: translateX(5px); background: white; box-shadow: var(--shadow-sm); }
-        .schedule-item .item-date { font-weight: 800; color: var(--poth-maroon); }
-        .schedule-item .item-info h4 { margin: 0; font-size: 1.1rem; }
-        .schedule-item .item-info p { margin: 0; color: var(--text-muted); font-size: 0.9rem; }
+        .list-item:hover { transform: translateX(8px); background: white; box-shadow: var(--shadow-sm); }
+        .item-date-box { text-align: center; }
+        .item-day { font-size: 1.6rem; font-weight: 800; color: var(--poth-maroon); line-height: 1; }
+        .item-month { font-weight: 600; text-transform: uppercase; color: var(--text-muted); font-size: 0.85rem; }
+
+        /* 
+        ================================================================
+        8. MODALS & OVERLAYS
+        ================================================================
+        */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal {
+            background: white;
+            width: 100%;
+            max-width: 550px;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modalIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .modal-header {
+            background: var(--poth-maroon);
+            color: white;
+            padding: 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 { font-family: 'Playfair Display', serif; font-size: 1.5rem; }
+
+        .modal-body { padding: 35px; }
+
+        .form-group { margin-bottom: 22px; }
+        .form-group label { display: block; margin-bottom: 10px; font-weight: 700; font-size: 0.9rem; color: var(--text-dark); }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #edeff5;
+            border-radius: 14px;
+            font-size: 1rem;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .form-group input:focus { border-color: var(--poth-maroon); outline: none; box-shadow: 0 0 0 4px rgba(123, 17, 19, 0.1); }
+
+        .modal-footer {
+            padding: 25px 35px;
+            background: #fdfdfd;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        /* 
+        ================================================================
+        9. DIRECTOR MODE LOGIC
+        ================================================================
+        */
+        .admin-only { display: none !important; }
+        body.admin-active .admin-only { display: flex !important; }
+        body.admin-active .members-only { display: none !important; }
+        body.admin-active header { background-color: #1a1a1a; }
+        body.admin-active #main-brand-text::after { content: " | PORTAL"; color: var(--poth-gold); font-size: 0.8rem; }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed; bottom: 40px; right: 40px;
+            padding: 18px 32px; background: #2d3436; color: white;
+            border-radius: 18px; z-index: 5000; display: none;
+            box-shadow: var(--shadow-lg); font-weight: 600;
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
     </style>
 </head>
-<body id="app-body">
+<body id="app">
 
-    <!-- Header -->
+    <!-- Primary Navigation -->
     <header>
-        <div class="container header-grid">
-            <div class="header-left">
-                <div class="date-display" id="current-date-header">Loading...</div>
+        <div class="container header-content">
+            <div class="brand">
+                <i class="fas fa-theater-masks"></i>
+                <h1 id="main-brand-text">Poth OAP</h1>
             </div>
-            <div class="header-center">
-                <h1 id="main-title">Poth OAP</h1>
-            </div>
-            <div class="header-right">
-                <button class="btn btn-outline members-only" id="director-login-btn" onclick="openModal('modal-auth')">
-                    <i class="fas fa-user-shield"></i> Director
+            <div class="nav-actions">
+                <button class="btn btn-outline members-only" onclick="toggleModal('modal-login', true)">
+                    <i class="fas fa-key"></i> Director Access
                 </button>
-                <button class="btn btn-gold director-only" onclick="logOut()">
-                    <i class="fas fa-sign-out-alt"></i> Exit Admin
+                <button class="btn btn-gold admin-only" onclick="exitAdmin()">
+                    <i class="fas fa-sign-out-alt"></i> Leave Portal
                 </button>
             </div>
         </div>
@@ -418,310 +399,339 @@
 
     <div class="container">
         <main>
-            <!-- Left Navigation / Legend -->
-            <aside>
-                <div class="sidebar-card view-switcher">
-                    <h3>Display Mode</h3>
-                    <button class="switcher-btn active" id="view-cal-btn" onclick="switchMainView('calendar')">
-                        <span><i class="far fa-calendar-alt"></i> Calendar View</span>
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                    <button class="switcher-btn" id="view-list-btn" onclick="switchMainView('list')">
-                        <span><i class="fas fa-list-ul"></i> Schedule List</span>
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
+            <!-- Sidebar Panel -->
+            <aside class="sidebar-panel">
+                <div class="card">
+                    <h3><i class="fas fa-compass"></i> Navigation</h3>
+                    <div class="view-toggle-list">
+                        <div class="toggle-item active" id="btn-cal" onclick="switchMainDisplay('calendar')">
+                            <span>Interactive Calendar</span>
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="toggle-item" id="btn-list" onclick="switchMainDisplay('list')">
+                            <span>Chronological List</span>
+                            <i class="fas fa-list-ul"></i>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="sidebar-card">
-                    <h3>Actions</h3>
-                    <button class="btn btn-maroon btn-full members-only" onclick="openModal('modal-absence')" style="width: 100%;">
+                <div class="card">
+                    <h3><i class="fas fa-tasks"></i> Control Center</h3>
+                    <button class="btn btn-gold members-only" style="width:100%; margin-bottom:12px;" onclick="toggleModal('modal-absence', true)">
                         <i class="fas fa-user-clock"></i> Report Absence
                     </button>
-                    <button class="btn btn-maroon btn-full director-only" onclick="openModal('modal-event')" style="width: 100%;">
-                        <i class="fas fa-plus-circle"></i> Create Event
+                    <button class="btn btn-gold admin-only" style="width:100%; margin-bottom:12px;" onclick="toggleModal('modal-event', true)">
+                        <i class="fas fa-plus-circle"></i> Add Practice
                     </button>
-                </div>
-
-                <div class="sidebar-card">
-                    <h3>Legend</h3>
-                    <div class="legend-item"><div class="dot practice"></div> Regular Practice</div>
-                    <div class="legend-item"><div class="dot rehearsal"></div> Full Rehearsal</div>
-                    <div class="legend-item"><div class="dot clinic"></div> Clinic / workshop</div>
-                    <div class="legend-item"><div class="dot absence"></div> Member Absence</div>
+                    
+                    <div class="legend-card" style="margin-top:20px;">
+                        <div class="item"><div class="dot" style="background:var(--color-practice)"></div> Practice</div>
+                        <div class="item"><div class="dot" style="background:var(--color-rehearsal)"></div> Tech Rehearsal</div>
+                        <div class="item"><div class="dot" style="background:var(--color-clinic)"></div> Clinic / workshop</div>
+                        <div class="item"><div class="dot" style="background:var(--color-absence)"></div> Student Absence</div>
+                    </div>
                 </div>
             </aside>
 
-            <!-- Main Content Area -->
+            <!-- Workspace -->
             <section id="content-area">
-                <div id="calendar-view">
+                <div id="calendar-wrapper">
                     <div id="calendar"></div>
                 </div>
-                <div id="list-view" style="display: none;">
-                    <div class="list-view-header" style="margin-bottom: 30px;">
-                        <h2 style="color: var(--poth-maroon);">Production Schedule</h2>
-                        <p>Showing all upcoming events and absences.</p>
+
+                <div id="list-wrapper" style="display: none;">
+                    <div style="margin-bottom: 30px;">
+                        <h2 style="font-family:'Playfair Display'; color:var(--poth-maroon); font-size:2rem;">Official Production Schedule</h2>
+                        <p style="color:var(--text-muted)">Detailed event timeline including documented student absences.</p>
                     </div>
-                    <div id="list-items-container" class="list-view-container">
-                        <!-- List items will be injected here -->
+                    <div id="list-container" class="schedule-list-view">
+                        <!-- Dynamic Injection -->
                     </div>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- MODAL: Authentication -->
-    <div id="modal-auth" class="modal-overlay">
-        <div class="modal-content">
+    <!-- 
+    ================================================================
+    MODAL SUITE
+    ================================================================
+    -->
+
+    <!-- Modal: Director Authentication -->
+    <div id="modal-login" class="overlay">
+        <div class="modal">
             <div class="modal-header">
-                <h2>Director Access</h2>
-                <i class="fas fa-times" onclick="closeModal('modal-auth')" style="cursor: pointer;"></i>
+                <h2>Portal Authorization</h2>
+                <i class="fas fa-times" style="cursor:pointer" onclick="toggleModal('modal-login', false)"></i>
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="admin-password">Secure Password</label>
-                    <input type="password" id="admin-password" placeholder="••••••••">
+                    <label>Director Security Key</label>
+                    <input type="password" id="auth-key" placeholder="••••••••">
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal('modal-auth')">Cancel</button>
-                <button class="btn btn-maroon" onclick="handleAuth()">Unlock Dashboard</button>
+                <button class="btn btn-outline" onclick="toggleModal('modal-login', false)">Cancel</button>
+                <button class="btn btn-gold" onclick="attemptAuth()">Authenticate</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL: Report Absence -->
-    <div id="modal-absence" class="modal-overlay">
-        <div class="modal-content">
+    <!-- Modal: Student Absence Report -->
+    <div id="modal-absence" class="overlay">
+        <div class="modal">
             <div class="modal-header">
-                <h2>Report Absence</h2>
-                <i class="fas fa-times" onclick="closeModal('modal-absence')" style="cursor: pointer;"></i>
+                <h2>Absence Report</h2>
+                <i class="fas fa-times" style="cursor:pointer" onclick="toggleModal('modal-absence', false)"></i>
             </div>
-            <form id="absence-form" onsubmit="handleAbsenceSubmit(event)">
+            <form id="form-absence" onsubmit="handleAbsenceSubmit(event)">
                 <div class="modal-body">
                     <div class="form-group">
-                        <label>Member Name</label>
-                        <input type="text" id="abs-name" placeholder="First and Last Name" required>
+                        <label>Student Name</label>
+                        <input type="text" id="abs-name" placeholder="Full Legal Name" required>
                     </div>
                     <div class="form-group">
-                        <label>Date of Absence</label>
+                        <label>Date of Conflict</label>
                         <input type="date" id="abs-date" required>
                     </div>
                     <div class="form-group">
-                        <label>Reason for Missing</label>
-                        <textarea id="abs-reason" rows="3" placeholder="Explain why you will miss practice..."></textarea>
+                        <label>Reason for Absence</label>
+                        <textarea id="abs-reason" rows="3" placeholder="Explain the conflict..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline" onclick="closeModal('modal-absence')">Cancel</button>
-                    <button type="submit" class="btn btn-maroon">Submit Report</button>
+                    <button type="button" class="btn btn-outline" onclick="toggleModal('modal-absence', false)">Discard</button>
+                    <button type="submit" class="btn btn-gold">File Report</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL: Create Event (Director Only) -->
-    <div id="modal-event" class="modal-overlay">
-        <div class="modal-content">
+    <!-- Modal: Create Activity (Director) -->
+    <div id="modal-event" class="overlay">
+        <div class="modal">
             <div class="modal-header">
-                <h2>Schedule Event</h2>
-                <i class="fas fa-times" onclick="closeModal('modal-event')" style="cursor: pointer;"></i>
+                <h2>Schedule Activity</h2>
+                <i class="fas fa-times" style="cursor:pointer" onclick="toggleModal('modal-event', false)"></i>
             </div>
-            <form id="event-form" onsubmit="handleEventSubmit(event)">
+            <form id="form-event" onsubmit="handleEventSubmit(event)">
                 <div class="modal-body">
                     <div class="form-group">
-                        <label>Event Title</label>
-                        <input type="text" id="evt-title" placeholder="e.g., Full Cast Blocking" required>
+                        <label>Activity Name</label>
+                        <input type="text" id="evt-title" placeholder="e.g. Blocking Act 1" required>
                     </div>
                     <div class="form-group">
-                        <label>Event Category</label>
+                        <label>Activity Type</label>
                         <select id="evt-type">
-                            <option value="practice">Practice</option>
-                            <option value="rehearsal">Technical Rehearsal</option>
-                            <option value="clinic">Clinic / Guest Speaker</option>
+                            <option value="practice">Standard Practice</option>
+                            <option value="rehearsal">Full Rehearsal</option>
+                            <option value="clinic">Guest Clinic</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Date</label>
+                        <label>Scheduled Date</label>
                         <input type="date" id="evt-date" required>
                     </div>
                     <div class="form-group">
-                        <label>Additional Notes</label>
-                        <textarea id="evt-notes" rows="2" placeholder="Supplies needed, specific scenes, etc..."></textarea>
+                        <label>Director Notes</label>
+                        <textarea id="evt-notes" rows="2" placeholder="Specific scenes, props list, etc..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline" onclick="closeModal('modal-event')">Cancel</button>
-                    <button type="submit" class="btn btn-maroon">Publish to Calendar</button>
+                    <button type="button" class="btn btn-outline" onclick="toggleModal('modal-event', false)">Cancel</button>
+                    <button type="submit" class="btn btn-gold">Publish Event</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL: Event Detail & Delete -->
-    <div id="modal-detail" class="modal-overlay">
-        <div class="modal-content">
+    <!-- Modal: Inspect Event -->
+    <div id="modal-detail" class="overlay">
+        <div class="modal">
             <div class="modal-header">
-                <h2 id="det-title">Event Details</h2>
-                <i class="fas fa-times" onclick="closeModal('modal-detail')" style="cursor: pointer;"></i>
+                <h2 id="view-title">Schedule Entry</h2>
+                <i class="fas fa-times" style="cursor:pointer" onclick="toggleModal('modal-detail', false)"></i>
             </div>
             <div class="modal-body">
-                <div id="det-data" style="margin-bottom: 20px;">
-                    <p><strong>Type:</strong> <span id="det-type-label"></span></p>
-                    <p><strong>Date:</strong> <span id="det-date-label"></span></p>
-                    <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
-                    <p id="det-description" style="white-space: pre-wrap; color: var(--text-muted);"></p>
+                <div id="view-meta" style="margin-bottom:25px;">
+                    <p><strong>Category:</strong> <span id="view-label-type"></span></p>
+                    <p><strong>Date:</strong> <span id="view-label-date"></span></p>
+                    <hr style="margin:20px 0; border:0; border-top:1px solid #eee;">
+                    <p id="view-label-desc" style="white-space:pre-wrap; color:var(--text-muted)"></p>
                 </div>
-                <div class="director-only">
-                    <button class="btn btn-danger btn-full" style="width: 100%;" onclick="requestDelete()">
-                        <i class="fas fa-trash-alt"></i> Delete Forever
+                <div class="admin-only" id="admin-delete-zone">
+                    <button class="btn btn-danger" style="width:100%" onclick="executeRemoval()">
+                        <i class="fas fa-trash"></i> Permanently Delete
                     </button>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal('modal-detail')">Close</button>
+                <button class="btn btn-outline" style="width:100%" onclick="toggleModal('modal-detail', false)">Close View</button>
             </div>
         </div>
     </div>
 
-    <!-- Notifications -->
+    <!-- Toast UI -->
     <div id="toast" class="toast"></div>
 
-    <!-- Logic Script -->
+    <!-- 
+    ================================================================
+    JAVASCRIPT LOGIC 
+    ================================================================
+    -->
     <script>
         /**
-         * ============================================================
-         * 1. CONFIGURATION & INITIALIZATION
-         * ============================================================
+         * 1. SYSTEM INITIALIZATION & STATE
+         * Core variables to track the application workflow
          */
-        const SUPABASE_URL = 'https://tgrlrejnngmmofqfunmv.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRncmxyZWpubmdtbW9mcWZ1bm12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5Mzk1MDYsImV4cCI6MjA4NDUxNTUwNn0.lNNjZggoIb8zBH1T-t5wP8l5xphdXXmHCX9vKXA1xI4';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+        const URL = 'https://tgrlrejnngmmofqfunmv.supabase.co';
+        const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRncmxyZWpubmdtbW9mcWZ1bm12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5Mzk1MDYsImV4cCI6MjA4NDUxNTUwNn0.lNNjZggoIb8zBH1T-t5wP8l5xphdXXmHCX9vKXA1xI4';
+        
+        let db;
         let calendar;
-        let isDirector = false;
-        let activeEvents = [];
-        let currentlySelectedEventId = null;
+        let rawData = [];
+        let isAdmin = false;
+        let selectedId = null;
 
-        // Start Up
-        document.addEventListener('DOMContentLoaded', () => {
-            initHeaderDate();
+        // Entry point
+        document.addEventListener('DOMContentLoaded', async () => {
+            initDatabase();
             initCalendar();
-            fetchData();
+            await synchronize();
         });
 
-        const initHeaderDate = () => {
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('current-date-header').innerText = new Date().toLocaleDateString(undefined, options);
-        };
-
-        /**
-         * ============================================================
-         * 2. DATA OPERATIONS (SUPABASE)
-         * ============================================================
-         */
-        
-        async function fetchData() {
+        // Setup the Supabase connection
+        function initDatabase() {
             try {
-                const { data, error } = await _supabase
-                    .from('events')
-                    .select('*')
-                    .order('start_time', { ascending: true });
-
-                if (error) throw error;
-                
-                activeEvents = data;
-                updateCalendarSource();
-                renderListView();
+                db = supabase.createClient(URL, KEY);
             } catch (err) {
-                console.error("Fetch Error:", err);
-                showToast("Failed to sync with server.");
+                console.error("Supabase unreachable:", err);
+                dispatchToast("Offline Mode: Data will not sync.");
             }
         }
 
-        async function createRecord(payload) {
-            const { error } = await _supabase.from('events').insert([payload]);
-            if (error) {
-                showToast("Error saving data.");
-            } else {
-                showToast("Schedule updated successfully!");
-                fetchData();
-            }
-        }
-
-        async function deleteRecord(id) {
-            const { error } = await _supabase.from('events').delete().eq('id', id);
-            if (error) {
-                showToast("Delete failed.");
-            } else {
-                showToast("Event removed.");
-                fetchData();
-            }
-        }
-
-        /**
-         * ============================================================
-         * 3. CALENDAR & UI LOGIC
-         * ============================================================
-         */
-
+        // Setup FullCalendar instance
         function initCalendar() {
-            const calendarEl = document.getElementById('calendar');
-            calendar = new FullCalendar.Calendar(calendarEl, {
+            const el = document.getElementById('calendar');
+            calendar = new FullCalendar.Calendar(el, {
                 initialView: 'dayGridMonth',
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek'
                 },
-                eventClick: function(info) {
-                    displayEventDetail(info.event);
+                events: (info, success) => {
+                    const mapped = rawData.map(item => ({
+                        id: item.id,
+                        title: item.type === 'absence' ? `ABSENCE: ${item.title}` : item.title,
+                        start: item.start_time,
+                        className: `event-${item.type}`,
+                        extendedProps: { ...item }
+                    }));
+                    success(mapped);
                 },
-                themeSystem: 'standard'
+                eventClick: (info) => openInspector(info.event.id),
+                height: 'auto',
+                handleWindowResize: true
             });
             calendar.render();
         }
 
-        function updateCalendarSource() {
-            calendar.removeAllEvents();
-            const formatted = activeEvents.map(ev => ({
-                id: ev.id,
-                title: ev.type === 'absence' ? `ABSENCE: ${ev.title}` : ev.title,
-                start: ev.start_time,
-                className: `event-${ev.type}`,
-                extendedProps: {
-                    description: ev.description,
-                    rawType: ev.type
-                }
-            }));
-            calendar.addEventSource(formatted);
-        }
+        /**
+         * 2. DATA SYNCHRONIZATION
+         * Functions to handle server-state management
+         */
+        async function synchronize() {
+            if (!db) return;
+            
+            const { data, error } = await db
+                .from('events')
+                .select('*')
+                .order('start_time', { ascending: true });
 
-        function renderListView() {
-            const container = document.getElementById('list-items-container');
-            container.innerHTML = "";
-
-            if (activeEvents.length === 0) {
-                container.innerHTML = `<div class="empty-state">No events scheduled.</div>`;
+            if (error) {
+                dispatchToast("Sync Failure");
                 return;
             }
 
-            activeEvents.forEach(ev => {
-                const div = document.createElement('div');
-                div.className = 'schedule-item';
-                div.style.borderColor = `var(--color-${ev.type})`;
-                
-                const dateObj = new Date(ev.start_time + 'T00:00:00');
-                const dateStr = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            rawData = data;
+            calendar.refetchEvents();
+            renderScheduleList();
+        }
 
+        async function createEntry(payload) {
+            const { error } = await db.from('events').insert([payload]);
+            if (error) {
+                dispatchToast("Unable to save entry");
+            } else {
+                dispatchToast("Schedule Updated");
+                await synchronize();
+            }
+        }
+
+        async function removeEntry(id) {
+            const { error } = await db.from('events').delete().eq('id', id);
+            if (error) {
+                dispatchToast("Deletion failed");
+            } else {
+                dispatchToast("Removed from system");
+                await synchronize();
+            }
+        }
+
+        /**
+         * 3. UI HANDLERS & NAVIGATION
+         */
+        function switchMainDisplay(target) {
+            const calWrapper = document.getElementById('calendar-wrapper');
+            const listWrapper = document.getElementById('list-wrapper');
+            const btnCal = document.getElementById('btn-cal');
+            const btnList = document.getElementById('btn-list');
+
+            if (target === 'calendar') {
+                calWrapper.style.display = 'block';
+                listWrapper.style.display = 'none';
+                btnCal.classList.add('active');
+                btnList.classList.remove('active');
+                calendar.updateSize();
+            } else {
+                calWrapper.style.display = 'none';
+                listWrapper.style.display = 'block';
+                btnList.classList.add('active');
+                btnCal.classList.remove('active');
+            }
+        }
+
+        function renderScheduleList() {
+            const container = document.getElementById('list-container');
+            container.innerHTML = "";
+
+            if (rawData.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:100px; opacity:0.4;">No production data available.</div>`;
+                return;
+            }
+
+            rawData.forEach(item => {
+                const dateObj = new Date(item.start_time + 'T00:00:00');
+                const month = dateObj.toLocaleDateString('en-US', { month: 'short' });
+                const day = dateObj.getDate();
+
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.style.borderLeftColor = `var(--color-${item.type})`;
                 div.innerHTML = `
-                    <div class="item-date">${dateStr}</div>
-                    <div class="item-info">
-                        <h4>${ev.type === 'absence' ? 'Absence: ' + ev.title : ev.title}</h4>
-                        <p>${ev.description || 'No description provided'}</p>
+                    <div class="item-date-box">
+                        <div class="item-day">${day}</div>
+                        <div class="item-month">${month}</div>
                     </div>
-                    <div class="item-action">
-                        <button class="btn btn-outline" style="padding: 5px 10px;" onclick="openDetailById('${ev.id}')">
-                            <i class="fas fa-info-circle"></i> View
+                    <div class="item-core">
+                        <h4 style="margin:0; font-size:1.15rem;">${item.type === 'absence' ? 'Absence: ' + item.title : item.title}</h4>
+                        <span style="font-size:0.75rem; text-transform:uppercase; font-weight:700; opacity:0.6;">${item.type}</span>
+                    </div>
+                    <div class="item-nav">
+                        <button class="btn btn-outline" style="padding:8px 15px; font-size:0.75rem;" onclick="openInspector('${item.id}')">
+                            <i class="fas fa-eye"></i> Details
                         </button>
                     </div>
                 `;
@@ -730,52 +740,30 @@
         }
 
         /**
-         * ============================================================
-         * 4. HANDLERS
-         * ============================================================
+         * 4. AUTHENTICATION & PORTAL LOGIC
          */
-
-        function switchMainView(type) {
-            const calView = document.getElementById('calendar-view');
-            const listView = document.getElementById('list-view');
-            const calBtn = document.getElementById('view-cal-btn');
-            const listBtn = document.getElementById('view-list-btn');
-
-            if (type === 'calendar') {
-                calView.style.display = 'block';
-                listView.style.display = 'none';
-                calBtn.classList.add('active');
-                listBtn.classList.remove('active');
-                calendar.updateSize();
+        function attemptAuth() {
+            const input = document.getElementById('auth-key').value;
+            if (input === "OAP2026!") {
+                isAdmin = true;
+                document.getElementById('app').classList.add('admin-active');
+                dispatchToast("Authenticated: Welcome Director");
+                toggleModal('modal-login', false);
+                document.getElementById('auth-key').value = "";
             } else {
-                calView.style.display = 'none';
-                listView.style.display = 'block';
-                listBtn.classList.add('active');
-                calBtn.classList.remove('active');
+                dispatchToast("Incorrect Key");
             }
         }
 
-        function handleAuth() {
-            const pass = document.getElementById('admin-password').value;
-            if (pass === "OAP2026!") {
-                isDirector = true;
-                document.getElementById('app-body').classList.add('mode-director');
-                document.getElementById('main-title').innerText = "Director Dashboard";
-                showToast("Director Mode Activated");
-                closeModal('modal-auth');
-            } else {
-                showToast("Invalid Access Key");
-            }
-            document.getElementById('admin-password').value = "";
+        function exitAdmin() {
+            isAdmin = false;
+            document.getElementById('app').classList.remove('admin-active');
+            dispatchToast("Session Closed");
         }
 
-        function logOut() {
-            isDirector = false;
-            document.getElementById('app-body').classList.remove('mode-director');
-            document.getElementById('main-title').innerText = "Poth OAP";
-            showToast("Admin session ended");
-        }
-
+        /**
+         * 5. FORM SUBMISSIONS
+         */
         function handleAbsenceSubmit(e) {
             e.preventDefault();
             const payload = {
@@ -784,8 +772,8 @@
                 description: document.getElementById('abs-reason').value,
                 type: 'absence'
             };
-            createRecord(payload);
-            closeModal('modal-absence');
+            createEntry(payload);
+            toggleModal('modal-absence', false);
             e.target.reset();
         }
 
@@ -797,68 +785,49 @@
                 start_time: document.getElementById('evt-date').value,
                 description: document.getElementById('evt-notes').value
             };
-            createRecord(payload);
-            closeModal('modal-event');
+            createEntry(payload);
+            toggleModal('modal-event', false);
             e.target.reset();
         }
 
-        function openDetailById(id) {
-            const ev = activeEvents.find(e => e.id === id);
-            if (!ev) return;
-            
-            currentlySelectedEventId = ev.id;
-            document.getElementById('det-title').innerText = ev.title;
-            document.getElementById('det-type-label').innerText = ev.type.toUpperCase();
-            document.getElementById('det-date-label').innerText = ev.start_time;
-            document.getElementById('det-description').innerText = ev.description || "No description provided.";
-            
-            openModal('modal-detail');
+        /**
+         * 6. UTILITIES
+         */
+        function toggleModal(id, show) {
+            document.getElementById(id).style.display = show ? 'flex' : 'none';
         }
 
-        function displayEventDetail(fullCalEvent) {
-            currentlySelectedEventId = fullCalEvent.id;
-            document.getElementById('det-title').innerText = fullCalEvent.title;
-            document.getElementById('det-type-label').innerText = fullCalEvent.extendedProps.rawType.toUpperCase();
-            document.getElementById('det-date-label').innerText = fullCalEvent.startStr;
-            document.getElementById('det-description').innerText = fullCalEvent.extendedProps.description || "No description provided.";
+        function openInspector(id) {
+            const entry = rawData.find(x => x.id === id);
+            if (!entry) return;
+
+            selectedId = id;
+            document.getElementById('view-title').innerText = entry.title;
+            document.getElementById('view-label-type').innerText = entry.type.toUpperCase();
+            document.getElementById('view-label-date').innerText = entry.start_time;
+            document.getElementById('view-label-desc').innerText = entry.description || "No supplemental details provided for this entry.";
             
-            openModal('modal-detail');
+            toggleModal('modal-detail', true);
         }
 
-        function requestDelete() {
-            if (confirm("Are you sure you want to remove this from the schedule?")) {
-                deleteRecord(currentlySelectedEventId);
-                closeModal('modal-detail');
+        function executeRemoval() {
+            if (confirm("This action is permanent. Are you sure?")) {
+                removeEntry(selectedId);
+                toggleModal('modal-detail', false);
             }
         }
 
-        /**
-         * ============================================================
-         * 5. UTILITIES
-         * ============================================================
-         */
-
-        function openModal(id) {
-            document.getElementById(id).style.display = 'flex';
+        function dispatchToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 3500);
         }
 
-        function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
-        }
-
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            toast.innerText = msg;
-            toast.style.display = 'block';
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 3000);
-        }
-
-        // Close modal on outside click
-        window.onclick = function(event) {
-            if (event.target.className === 'modal-overlay') {
-                event.target.style.display = 'none';
+        // Global click listener to close modals when clicking outside
+        window.onclick = (e) => {
+            if (e.target.classList.contains('overlay')) {
+                e.target.style.display = 'none';
             }
         };
 
