@@ -1,498 +1,751 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Poth OAP Management | Director Dashboard v4.0</title>
+    <title>Poth High School OAP</title>
 
-    <!-- Typography & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <!-- 
+    ================================================================
+    DASHBOARD CORE DEPENDENCIES
+    High-availability CDNs for production stability
+    ================================================================
+    -->
+    
+    <!-- Typography: Outfit (Modern Sans) & Playfair Display (Serif) -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&display=swap" rel="stylesheet">
+    
+    <!-- Icons: FontAwesome 6 Pro-standard pack -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Dependencies -->
+    <!-- FullCalendar Engine: V6.1.10 -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    
+    <!-- Supabase Logic: Version 2 stable -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
+        /* 
+        ================================================================
+        1. MASTER CSS VARIABLES (DASHBOARD THEME)
+        Focusing on Poth Maroon (#7B1113) and Poth Gold (#FFD700)
+        ================================================================
+        */
         :root {
-            --poth-maroon: #7B1113;
-            --poth-maroon-light: #a31d20;
+            /* Branding Colors */
+            --poth-maroon: #000080;
+            --poth-maroon-hover: #0505af;
+            --poth-maroon-dark: #020256;
             --poth-gold: #FFD700;
-            --poth-gold-dim: #c9aa00;
-            --bg-deep: #0f172a;
-            --bg-surface: #ffffff;
-            --bg-canvas: #f1f5f9;
-            --text-primary: #1e293b;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
+            --poth-gold-soft: #fff9db;
+            --poth-gold-glow: rgba(255, 215, 0, 0.4);
             
-            --absence: #ef4444;
-            --practice: #3b82f6;
-            --rehearsal: #10b981;
-            --clinic: #f59e0b;
+            /* UI Palette */
+            --white: #ffffff;
+            --off-white: #f8f9fb;
+            --bg-canvas: #f1f5f9;
+            --text-main: #0f172a;
+            --text-secondary: #475569;
+            --divider: #e2e8f0;
+            
+            /* Status Indicators */
+            --color-absence: #ef4444;
+            --color-practice: #3b82f6;
+            --color-rehearsal: #10b981;
+            --color-clinic: #f59e0b;
+            --color-production: #64748b;
 
-            --radius-main: 24px;
-            --radius-inner: 16px;
-            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Component Settings */
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --shadow-sm: 0 4px 6px rgba(0,0,0,0.02);
+            --shadow-md: 0 10px 30px rgba(0,0,0,0.06);
+            --shadow-lg: 0 30px 60px rgba(0,0,0,0.12);
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+            --speed: 0.35s;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Outfit', sans-serif; 
-            background: var(--bg-canvas); 
-            color: var(--text-primary);
+        /* 
+        ================================================================
+        2. SMART SCREEN ARCHITECTURE (ZERO-SCROLL)
+        ================================================================
+        */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-canvas);
+            color: var(--text-main);
             height: 100vh;
-            display: grid;
-            grid-template-columns: 80px 1fr;
-            overflow: hidden;
-        }
-
-        /* Director Authorized Mode Styling */
-        body.is-director-authorized { 
-            --bg-canvas: #020617; 
-            --bg-surface: #0f172a; 
-            --text-primary: #f8fafc;
-            --border: #1e293b;
-            --text-muted: #94a3b8;
-        }
-
-        /* 1. NAVIGATION RAIL */
-        nav.nav-rail {
-            background: var(--poth-maroon);
-            border-right: 4px solid var(--poth-gold);
+            width: 100vw;
+            overflow: hidden; /* Lock the primary scroll */
             display: flex;
             flex-direction: column;
-            align-items: center;
-            padding: 25px 0;
-            gap: 30px;
-            z-index: 100;
         }
 
-        .rail-brand {
-            width: 45px;
-            height: 45px;
-            background: var(--poth-gold);
-            border-radius: 12px;
+        .main-container {
+            max-width: 1700px;
+            margin: 0 auto;
+            padding: 0 30px;
+            width: 100%;
+        }
+
+        /* 
+        ================================================================
+        3. NAVIGATION & APP BAR
+        ================================================================
+        */
+        header {
+            background-color: var(--poth-maroon);
+            color: var(--white);
+            padding: 1rem 0;
+            border-bottom: 6px solid var(--poth-gold);
+            z-index: 1100;
+            box-shadow: 0 10px 30px rgba(123, 17, 19, 0.3);
+            flex-shrink: 0;
+        }
+
+        .bar-wrap {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand-logo {
             display: flex;
             align-items: center;
-            justify-content: center;
-            color: var(--poth-maroon);
-            font-size: 1.5rem;
-            margin-bottom: 20px;
+            gap: 18px;
+            text-decoration: none;
+            color: white;
+            transition: var(--speed);
         }
 
-        .rail-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 15px;
+        .brand-logo:hover {
+            opacity: 0.9;
+            transform: scale(1.01);
+        }
+
+        .brand-logo i {
+            font-size: 2.6rem;
+            color: var(--poth-gold);
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+        }
+
+        .brand-logo h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+            text-transform: capitalize;
+            font-weight: 900;
+            margin: 0;
+            text-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .utility-actions {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            color: rgba(255,255,255,0.6);
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 1.2rem;
-            position: relative;
-        }
-
-        .rail-btn:hover, .rail-btn.active { 
-            color: white; 
-            background: rgba(255,255,255,0.15); 
-        }
-        
-        .rail-btn.active::after {
-            content: '';
-            position: absolute;
-            left: -25px;
-            width: 4px;
-            height: 24px;
-            background: var(--poth-gold);
-            border-radius: 0 4px 4px 0;
-        }
-
-        /* 2. MAIN LAYOUT */
-        .app-shell {
-            display: grid;
-            grid-template-columns: 1fr 340px;
-            height: 100vh;
-        }
-
-        main.content-area {
-            padding: 35px;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        aside.control-side {
-            background: var(--bg-surface);
-            border-left: 1px solid var(--border);
-            padding: 35px 25px;
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-            overflow-y: auto;
-        }
-
-        /* 3. HEADERS & TYPOGRAPHY */
-        .workspace-header { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; }
-        .workspace-title h1 { font-family: 'Playfair Display', serif; font-size: 2.5rem; letter-spacing: -1px; }
-        .workspace-title p { color: var(--text-muted); font-size: 1.1rem; }
-
-        .section-header {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: var(--text-muted);
-            font-weight: 800;
-            margin-bottom: 5px;
-        }
-
-        /* 4. CARDS & WIDGETS */
-        .poth-card {
-            background: var(--bg-surface);
-            border-radius: var(--radius-main);
-            padding: 25px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-        }
-
-        .stat-card {
-            background: var(--bg-surface);
-            padding: 20px;
-            border-radius: var(--radius-inner);
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
             gap: 15px;
         }
 
-        .stat-icon {
-            width: 45px;
-            height: 45px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            background: var(--bg-canvas);
-        }
-
-        .stat-info .val { font-size: 1.5rem; font-weight: 800; line-height: 1; }
-        .stat-info .lab { font-size: 0.7rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); }
-
-        /* 5. BUTTONS AND CONTROLS */
+        /* 
+        ================================================================
+        4. CUSTOM BUTTON ENGINE
+        ================================================================
+        */
         .btn {
-            width: 100%;
-            padding: 16px;
-            border-radius: 16px;
-            font-weight: 700;
-            font-family: inherit;
+            padding: 12px 28px;
+            border-radius: 14px;
+            font-weight: 800;
             cursor: pointer;
             border: none;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 12px;
-            transition: var(--transition);
-            font-size: 0.95rem;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            transition: all var(--speed) var(--ease);
+            position: relative;
+            overflow: hidden;
         }
 
-        .btn-primary { background: var(--poth-maroon); color: white; }
-        .btn-primary:hover { background: var(--poth-maroon-light); transform: translateY(-2px); }
+        .btn-gold {
+            background: var(--poth-gold);
+            color: var(--poth-maroon);
+            box-shadow: 0 8px 20px -6px var(--poth-gold-glow);
+        }
 
-        .btn-accent { background: var(--poth-gold); color: var(--poth-maroon); }
-        .btn-accent:hover { filter: brightness(1.1); transform: translateY(-2px); }
+        .btn-gold:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px -4px var(--poth-gold-glow);
+            filter: brightness(1.05);
+        }
 
-        .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text-primary); }
-        .btn-outline:hover { background: var(--bg-canvas); }
+        .btn-outline {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid var(--poth-gold);
+            color: var(--poth-gold);
+        }
 
-        /* 6. LIST STYLING */
-        .schedule-item {
-            background: var(--bg-surface);
-            border-radius: var(--radius-inner);
-            padding: 20px;
-            margin-bottom: 12px;
+        .btn-outline:hover {
+            background: var(--poth-gold);
+            color: var(--poth-maroon);
+            transform: translateY(-3px);
+        }
+
+        .btn-danger {
+            background: var(--color-absence);
+            color: white;
+        }
+
+        /* 
+        ================================================================
+        5. DASHBOARD GRID SYSTEM
+        ================================================================
+        */
+        .dashboard-grid {
+            flex-grow: 1;
             display: grid;
-            grid-template-columns: 80px 1fr auto;
+            grid-template-columns: 340px 1fr;
+            gap: 30px;
+            padding: 30px;
+            overflow: hidden; /* Ensures only content panes scroll */
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-grid { grid-template-columns: 1fr; overflow-y: auto; }
+        }
+
+        /* 
+        ================================================================
+        6. SIDEBAR CONTROLS
+        ================================================================
+        */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            height: 100%;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .sidebar::-webkit-scrollbar { width: 5px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        .control-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--divider);
+            transition: var(--speed);
+        }
+
+        .control-card h3 {
+            margin-bottom: 22px;
+            color: var(--poth-maroon);
+            font-weight: 900;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
             align-items: center;
-            border: 1px solid var(--border);
-            transition: var(--transition);
+            gap: 12px;
+            opacity: 0.8;
         }
 
-        .schedule-item:hover { transform: scale(1.01); border-color: var(--poth-maroon); }
+        .view-switcher { display: flex; flex-direction: column; gap: 12px; }
+        .view-trigger {
+            background: var(--bg-canvas);
+            padding: 16px 20px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--speed);
+            border: 2px solid transparent;
+        }
+
+        .view-trigger:hover {
+            color: var(--poth-maroon);
+            background: white;
+            border-color: var(--divider);
+        }
+
+        .view-trigger.active {
+            background: white;
+            border-color: var(--poth-maroon);
+            color: var(--poth-maroon);
+            box-shadow: var(--shadow-md);
+            transform: scale(1.02);
+        }
+
+        .stats-wrap {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .stat-display {
+            background: var(--bg-canvas);
+            padding: 20px 10px;
+            border-radius: 18px;
+            text-align: center;
+            border: 1px solid var(--divider);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-display .val { font-size: 2.2rem; font-weight: 900; color: var(--poth-maroon); display: block; line-height: 1; }
+        .stat-display .lab { font-size: 0.7rem; text-transform: uppercase; font-weight: 800; color: var(--text-secondary); letter-spacing: 1px; }
+
+        .legend-list { margin-top: 20px; background: var(--bg-canvas); padding: 15px; border-radius: 16px; }
+        .legend-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; font-weight: 700; font-size: 0.9rem; color: var(--text-secondary); }
+        .legend-row .chip { width: 14px; height: 14px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        /* 
+        ================================================================
+        7. MAJOR WORKSPACE (CALENDAR & LIST)
+        ================================================================
+        */
+        #dashboard-workspace {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            box-shadow: var(--shadow-lg);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid var(--divider);
+        }
+
+        #view-calendar-container, #view-schedule-container {
+            flex-grow: 1;
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #main-calendar-widget {
+            height: 100% !important;
+            flex-grow: 1;
+        }
+
+        /* Calendar Skinning */
+        .fc { 
+            --fc-button-bg-color: var(--poth-maroon); 
+            --fc-button-border-color: var(--poth-maroon); 
+            --fc-button-hover-bg-color: var(--poth-maroon-hover);
+            font-size: 0.95rem; 
+            --fc-today-bg-color: var(--poth-gold-soft);
+        }
+        .fc-toolbar { margin-bottom: 25px !important; }
+        .fc-toolbar-title { font-family: 'Playfair Display', serif; font-weight: 900 !important; color: var(--poth-maroon); font-size: 2.2rem !important; }
+        .fc-col-header-cell { background: var(--poth-maroon); color: white !important; font-weight: 600 !important; padding: 15px 0 !important; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
+        .fc-event { border: none !important; border-radius: 8px !important; padding: 6px 10px !important; font-weight: 800 !important; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+        .fc-event:hover { transform: translateY(-2px) scale(1.03); filter: brightness(1.1); box-shadow: 0 8px 15px rgba(0,0,0,0.15); }
+
+        /* Production Color Classes */
+        .status-absence { background-color: var(--color-absence) !important; color: #fff !important; }
+        .status-practice { background-color: var(--color-practice) !important; color: #fff !important; }
+        .status-rehearsal { background-color: var(--color-rehearsal) !important; color: #fff !important; }
+        .status-clinic { background-color: var(--color-clinic) !important; color: #fff !important; }
+
+        .schedule-scroll-zone {
+            overflow-y: auto;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-right: 15px;
+            padding-top: 10px;
+        }
+
+        .schedule-scroll-zone::-webkit-scrollbar { width: 8px; }
+        .schedule-scroll-zone::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+
+        .list-entry-card {
+            display: grid;
+            grid-template-columns: 100px 1fr auto;
+            align-items: center;
+            padding: 25px;
+            background: var(--off-white);
+            border-radius: 20px;
+            border: 1px solid var(--divider);
+            transition: all 0.4s var(--ease);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+        .list-entry-card:hover { transform: translateY(-5px); background: white; box-shadow: var(--shadow-lg); border-color: var(--poth-gold); }
         
-        .item-date { text-align: center; border-right: 2px solid var(--border); }
-        .item-date .day { font-size: 1.8rem; font-weight: 900; display: block; line-height: 1; color: var(--poth-maroon); }
-        .item-date .month { font-size: 0.75rem; text-transform: uppercase; font-weight: 800; color: var(--text-muted); }
+        .date-badge { text-align: center; border-right: 2px solid var(--divider); padding-right: 20px; }
+        .date-badge .big-day { font-size: 2.22rem; font-weight: 900; color: var(--poth-maroon); display: block; line-height: 1; }
+        .date-badge .month-label { font-weight: 800; text-transform: uppercase; color: var(--text-secondary); font-size: 0.8rem; letter-spacing: 1px; }
 
-        .item-body { padding: 0 20px; }
-        .item-body h4 { font-size: 1.1rem; font-weight: 700; }
-        .item-badge { display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 0.65rem; font-weight: 900; text-transform: uppercase; margin-top: 5px; }
+        .content-text-sink { padding: 0 25px; }
 
-        /* 7. CALENDAR SKIN */
-        .fc { --fc-border-color: var(--border); color: var(--text-primary); font-family: 'Outfit', sans-serif; }
-        .fc-theme-standard th { background: var(--poth-maroon); color: white; padding: 12px; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; }
-        .fc-day-today { background: rgba(255, 215, 0, 0.05) !important; }
-        .fc-event { border: none !important; border-radius: 8px !important; padding: 5px 8px !important; font-weight: 600 !important; cursor: pointer; }
-
-        /* 8. MODAL ENGINE */
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(2, 6, 23, 0.7); backdrop-filter: blur(10px);
-            z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px;
+        /* 
+        ================================================================
+        8. OVERLAY & MODAL SYSTEM
+        ================================================================
+        */
+        .modal-background {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(16px);
+            z-index: 5000; display: none; justify-content: center; align-items: center; padding: 25px;
         }
 
-        .modal-card {
-            background: var(--bg-surface); color: var(--text-primary);
-            width: 100%; max-width: 500px; border-radius: 30px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); overflow: hidden;
-            animation: modalIn 0.4s ease;
+        .modal-window {
+            background: var(--white);
+            width: 100%; max-width: 600px;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: 0 40px 100px -20px rgba(0,0,0,0.3);
+            animation: modalRise 0.45s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
-        @keyframes modalIn { from { transform: scale(0.9) translateY(20px); opacity: 0; } }
+        @keyframes modalRise { from { transform: translateY(60px) scale(0.95); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
 
-        .modal-header { padding: 30px; background: var(--poth-maroon); color: white; display: flex; justify-content: space-between; align-items: center; }
-        .modal-header h2 { font-family: 'Playfair Display'; margin: 0; }
-        .modal-body { padding: 30px; }
-        .modal-footer { padding: 20px 30px; background: var(--bg-canvas); border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
-
-        .form-input { 
-            width: 100%; padding: 16px; border-radius: 12px; border: 2px solid var(--border); 
-            background: var(--bg-canvas); color: var(--text-primary); font-family: inherit; margin-bottom: 15px; 
+        .modal-header {
+            background: var(--poth-maroon);
+            color: white;
+            padding: 30px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 5px solid var(--poth-gold);
         }
 
-        .form-input:focus { outline: none; border-color: var(--poth-maroon); background: var(--bg-surface); }
-        
-        /* 9. UTILS */
-        .member-exclusive { display: flex; }
-        .director-exclusive { display: none; }
-        body.is-director-authorized .member-exclusive { display: none !important; }
+        .modal-header h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; margin: 0; }
+
+        .modal-body-content { padding: 40px; }
+
+        .field-group { margin-bottom: 25px; }
+        .field-group label { display: block; margin-bottom: 12px; font-weight: 900; font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
+        .field-group input, .field-group select, .field-group textarea {
+            width: 100%; padding: 16px 20px; border: 2.5px solid var(--bg-canvas); border-radius: 16px;
+            font-size: 1rem; font-family: inherit; transition: var(--speed); background: var(--bg-canvas);
+            color: var(--text-main); font-weight: 600;
+        }
+
+        .field-group input:focus, .field-group select:focus, .field-group textarea:focus { 
+            outline: none; border-color: var(--poth-maroon); background: white; 
+            box-shadow: 0 0 0 5px rgba(123, 17, 19, 0.05);
+        }
+
+        .modal-footer-actions {
+            padding: 25px 40px;
+            background: var(--bg-canvas);
+            border-top: 1px solid var(--divider);
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        /* 
+        ================================================================
+        9. PRIVILEGE & STATE HANDLERS
+        ================================================================
+        */
+        .director-exclusive { display: none !important; }
         body.is-director-authorized .director-exclusive { display: flex !important; }
+        body.is-director-authorized .member-exclusive { display: none !important; }
+        body.is-director-authorized header { background-color: #0f172a; border-color: var(--poth-gold); }
 
-        #app-loader { position: fixed; inset: 0; background: var(--poth-maroon); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .spinner { width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.1); border-top: 5px solid var(--poth-gold); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-
-        /* Toast Popup */
-        #toast { 
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); 
-            padding: 15px 30px; background: var(--bg-deep); color: white; font-weight: 700;
-            border-radius: 50px; display: none; z-index: 3000; border: 2px solid var(--poth-gold);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        .toast-popup {
+            position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%);
+            padding: 20px 45px; background: #0f172a; color: white;
+            border-radius: 50px; z-index: 9999; display: none; font-size: 1rem;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); font-weight: 800;
+            border: 2px solid var(--poth-gold);
+            animation: slideUp 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
         }
+
+        @keyframes slideUp { from { transform: translate(-50%, 40px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+
+        .app-loader-init {
+            position: absolute; inset: 0; background: white; z-index: 500;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px;
+            border-radius: var(--radius-lg);
+        }
+
+        .spin-loader {
+            width: 60px; height: 60px;
+            border: 6px solid #f1f5f9;
+            border-top: 6px solid var(--poth-maroon);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
     </style>
 </head>
 <body id="production-app">
 
-    <!-- Loading Screen -->
-    <div id="app-loader">
-        <div class="spinner"></div>
-        <p style="color:white; margin-top:20px; font-weight:800; letter-spacing:1px; text-transform:uppercase;">Loading Timeline...</p>
-    </div>
+    <!-- Application Top Bar -->
+    <header>
+        <div class="main-container bar-wrap">
+            <a href="#" class="brand-logo">
+                <i class="fas fa-masks-theater"></i>
+                <h1 id="app-title-text">Poth One Act Play</h1>
+            </a>
+            <div class="utility-actions">
+                <button class="btn btn-outline member-exclusive" onclick="openManagedModal('modal-director-login', true)">
+                    <i class="fas fa-fingerprint"></i> Director Modal
+                </button>
+                <button class="btn btn-gold director-exclusive" onclick="terminateSession()">
+                    <i class="fas fa-power-off"></i> Logout
+                </button>
+            </div>
+        </div>
+    </header>
 
-    <!-- 1. NAVIGATION RAIL -->
-    <nav class="nav-rail">
-        <div class="rail-brand">
-            <i class="fas fa-masks-theater"></i>
-        </div>
-        <div class="rail-btn active" id="rail-calendar" onclick="activateView('calendar')" title="Calendar View">
-            <i class="fas fa-calendar-alt"></i>
-        </div>
-        <div class="rail-btn" id="rail-list" onclick="activateView('schedule')" title="Timeline View">
-            <i class="fas fa-list-ul"></i>
-        </div>
+    <!-- Content Workspace -->
+    <main class="main-container dashboard-grid">
         
-        <div style="flex-grow: 1;"></div>
-
-        <div class="rail-btn member-exclusive" onclick="openManagedModal('modal-director-login', true)" title="Director Login">
-            <i class="fas fa-lock"></i>
-        </div>
-        <div class="rail-btn director-exclusive" onclick="terminateSession()" title="Director Logout" style="color:var(--poth-gold)">
-            <i class="fas fa-power-off"></i>
-        </div>
-    </nav>
-
-    <!-- 2. MAIN WORKSPACE -->
-    <div class="app-shell">
-        
-        <main class="content-area">
-            <div class="workspace-header">
-                <div class="workspace-title">
-                    <p id="sub-header-text">Poth High School OAP</p>
-                    <h1 id="app-title-text">Production Central</h1>
-                </div>
-            </div>
-
-            <!-- View: Calendar -->
-            <div id="view-calendar-container" class="poth-card" style="height: calc(100% - 130px);">
-                <div id="main-calendar-widget" style="height: 100%;"></div>
-            </div>
-
-            <!-- View: Schedule List -->
-            <div id="view-schedule-container" style="display: none;">
-                <div id="schedule-render-sink">
-                    <!-- Dynamic List Cards -->
-                </div>
-            </div>
-        </main>
-
-        <aside class="control-side">
-            <section>
-                <div class="section-header">Live Statistics</div>
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <div class="stat-card">
-                        <div class="stat-icon" style="color:var(--poth-maroon)"><i class="fas fa-rocket"></i></div>
-                        <div class="stat-info">
-                            <span class="val" id="count-total">0</span>
-                            <span class="lab">Total Activities</span>
-                        </div>
+        <!-- Dashboard Sidebar -->
+        <aside class="sidebar">
+            
+            <section class="control-card">
+                <h3><i class="fas fa-project-diagram"></i> Dashboard</h3>
+                <div class="view-switcher">
+                    <div class="view-trigger active" id="tab-calendar" onclick="activateView('calendar')">
+                        <span>Calendar</span>
+                        <i class="fas fa-th-large"></i>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon" style="color:var(--absence)"><i class="fas fa-user-slash"></i></div>
-                        <div class="stat-info">
-                            <span class="val" id="count-absence">0</span>
-                            <span class="lab">Absences Today</span>
-                        </div>
+                    <div class="view-trigger" id="tab-schedule" onclick="activateView('schedule')">
+                        <span>Timeline</span>
+                        <i class="fas fa-stream"></i>
+                    </div>
+                </div>
+            </section>
+<p style="text-align: center; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-secondary); margin: 15px 0; opacity: 0.9;">Scroll down to see all actions</p>
+            <section class="control-card">
+                <h3><i class="fas fa-microchip"></i> Analytics</h3>
+                <div class="stats-wrap">
+                    <div class="stat-display">
+                        <span class="val" id="count-total">0</span>
+                        <span class="lab">Events</span>
+                    </div>
+                    <div class="stat-display">
+                        <span class="val" id="count-absence" style="color:var(--color-absence)">0</span>
+                        <span class="lab">Absences</span>
                     </div>
                 </div>
             </section>
 
-            <section>
-                <div class="section-header">Operational Actions</div>
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <button class="btn btn-primary member-exclusive" onclick="openManagedModal('modal-report-absence', true)">
-                        <i class="fas fa-user-xmark"></i> Report Absence
-                    </button>
-                    <button class="btn btn-accent director-exclusive" onclick="openManagedModal('modal-create-event', true)">
-                        <i class="fas fa-plus-circle"></i> Create Activity
-                    </button>
-                    <button class="btn btn-outline" onclick="synchronizeProductionData()">
-                        <i class="fas fa-sync"></i> Refresh Data
-                    </button>
+            <section class="control-card">
+                <h3><i class="fas fa-bolt"></i> Operations</h3>
+                <button class="btn btn-gold member-exclusive" style="width:100%; margin-bottom:15px; background: var(--poth-maroon); color:white;" onclick="openManagedModal('modal-report-absence', true)">
+                    <i class="fas fa-user-xmark"></i> Submit Absence
+                </button>
+                <button class="btn btn-gold director-exclusive" style="width:100%; margin-bottom:15px; font-size:1rem; padding:18px;" onclick="openManagedModal('modal-create-event', true)">
+                    <i class="fas fa-calendar-plus"></i> New Activity
+                </button>
+                
+                <div class="legend-list">
+                    <div class="legend-row"><div class="chip" style="background:var(--color-practice)"></div> Practice/Rehearsal</div>
+                    <div class="legend-row"><div class="chip" style="background:var(--color-rehearsal)"></div> Tech Rehearsal</div>
+                    <div class="legend-row"><div class="chip" style="background:var(--color-clinic)"></div> Clinic/Performance</div>
+                    <div class="legend-row"><div class="chip" style="background:var(--color-absence)"></div> Student Absence</div>
                 </div>
             </section>
 
-            <section>
-                <div class="section-header">Category Legend</div>
-                <div class="poth-card" style="padding: 15px; border-radius: 12px;">
-                    <div style="display:flex; flex-direction:column; gap:10px;">
-                        <div style="font-size:0.85rem; display:flex; align-items:center; gap:10px;"><div style="width:10px; height:10px; border-radius:50%; background:var(--practice)"></div> Cast Practice</div>
-                        <div style="font-size:0.85rem; display:flex; align-items:center; gap:10px;"><div style="width:10px; height:10px; border-radius:50%; background:var(--rehearsal)"></div> Production Tech</div>
-                        <div style="font-size:0.85rem; display:flex; align-items:center; gap:10px;"><div style="width:10px; height:10px; border-radius:50%; background:var(--clinic)"></div> Expert Clinic</div>
-                        <div style="font-size:0.85rem; display:flex; align-items:center; gap:10px;"><div style="width:10px; height:10px; border-radius:50%; background:var(--absence)"></div> Shared Absence</div>
-                    </div>
-                </div>
-            </section>
         </aside>
-    </div>
 
-    <!-- MODAL OVERLAYS -->
+        <!-- Main Workspace Interaction Zone -->
+        <section id="dashboard-workspace">
+            
+            <!-- Loader -->
+            <div id="loading-mask" class="app-loader-init">
+                <div class="spin-loader"></div>
+                <p style="font-weight:900; color:var(--poth-maroon); font-size:1.1rem; letter-spacing: 1px; text-transform:uppercase;">Initializing Stage Hand...</p>
+            </div>
 
-    <!-- Modal: Login -->
-    <div id="modal-director-login" class="modal-overlay">
-        <div class="modal-card">
+            <!-- Calendar Container -->
+            <div id="view-calendar-container">
+                <div id="main-calendar-widget"></div>
+            </div>
+
+            <!-- List Schedule Container -->
+            <div id="view-schedule-container" style="display: none;">
+                <div style="margin-bottom: 30px;">
+                    <h2 style="font-family:'Playfair Display'; color:var(--poth-maroon); font-size:3rem; font-weight:900; letter-spacing:-1px;">Timeline</h2>
+                    <p style="color:var(--text-secondary); font-size:1.2rem; font-weight:600;">Managed records for Poth OAP 2026 Production Cycle.</p>
+                </div>
+                <div id="schedule-render-sink" class="schedule-scroll-zone">
+                    <!-- Cards dynamically injected via logic -->
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- 
+    ================================================================
+    DASHBOARD OVERLAYS
+    ================================================================
+    -->
+
+    <!-- Overlay: Auth -->
+    <div id="modal-director-login" class="modal-background">
+        <div class="modal-window">
             <div class="modal-header">
-                <h2>Director Logic</h2>
-                <i class="fas fa-times" onclick="openManagedModal('modal-director-login', false)" style="cursor:pointer"></i>
+                <h2>Security Gate</h2>
+                <i class="fas fa-times" style="cursor:pointer" onclick="openManagedModal('modal-director-login', false)"></i>
             </div>
-            <div class="modal-body">
-                <p style="margin-bottom:20px; font-size:0.9rem; color:var(--text-muted);">Confirm identity to access administrative production tools.</p>
-                <input type="password" id="field-director-pass" class="form-input" placeholder="Authorization Token">
+            <div class="modal-body-content">
+                <div class="field-group">
+                    <label>Identity Authorization Key</label>
+                    <input type="password" id="field-director-pass" placeholder="••••••••••••" style="letter-spacing:4px; font-size:1.5rem; text-align:center;">
+                </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" style="width:auto" onclick="openManagedModal('modal-director-login', false)">Cancel</button>
-                <button class="btn btn-primary" style="width:auto" onclick="authorizeDirector()">Authorize</button>
+            <div class="modal-footer-actions">
+                <button class="btn btn-outline" style="color:var(--text-secondary); border-color:var(--divider)" onclick="openManagedModal('modal-director-login', false)">Cancel</button>
+                <button class="btn btn-gold" onclick="authorizeDirector()">Grant Access</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal: Absence Report -->
-    <div id="modal-report-absence" class="modal-overlay">
-        <div class="modal-card">
+    <!-- Overlay: Absence Report -->
+    <div id="modal-report-absence" class="modal-background">
+        <div class="modal-window">
             <div class="modal-header">
-                <h2>OAP Absence Reporter</h2>
-                <i class="fas fa-times" onclick="openManagedModal('modal-report-absence', false)" style="cursor:pointer"></i>
+                <h2>Production Absence</h2>
+                <i class="fas fa-times" style="cursor:pointer" onclick="openManagedModal('modal-report-absence', false)"></i>
             </div>
-            <form onsubmit="handleAbsenceUpload(event)">
-                <div class="modal-body">
-                    <input type="text" id="abs-field-name" class="form-input" placeholder="Student Name" required>
-                    <input type="date" id="abs-field-date" class="form-input" required>
-                    <textarea id="abs-field-notes" class="form-input" rows="3" placeholder="Reason/Details"></textarea>
+            <form id="form-submit-absence" onsubmit="handleAbsenceUpload(event)">
+                <div class="modal-body-content">
+                    <div class="field-group">
+                        <label>Student Full Name</label>
+                        <input type="text" id="abs-field-name" placeholder="John Doe" required>
+                    </div>
+                    <div class="field-group">
+                        <label>Date of Conflict</label>
+                        <input type="date" id="abs-field-date" required>
+                    </div>
+                    <div class="field-group">
+                        <label>Reason for Absence</label>
+                        <textarea id="abs-field-notes" rows="3" placeholder="College visit, athletic event, etc..."></textarea>
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline" style="width:auto" onclick="openManagedModal('modal-report-absence', false)">Back</button>
-                    <button type="submit" class="btn btn-primary" style="width:auto">Post Absence</button>
+                <div class="modal-footer-actions">
+                    <button type="button" class="btn btn-outline" onclick="openManagedModal('modal-report-absence', false)">Back</button>
+                    <button type="submit" class="btn btn-gold">File Record</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal: Create Activity -->
-    <div id="modal-create-event" class="modal-overlay">
-        <div class="modal-card" style="max-width: 600px;">
+    <!-- Overlay: Create Event (With Recurrence Engine) -->
+    <div id="modal-create-event" class="modal-background">
+        <div class="modal-window">
             <div class="modal-header">
-                <h2>New Activity</h2>
-                <i class="fas fa-times" onclick="openManagedModal('modal-create-event', false)" style="cursor:pointer"></i>
+                <h2>New Activity Block</h2>
+                <i class="fas fa-times" style="cursor:pointer" onclick="openManagedModal('modal-create-event', false)"></i>
             </div>
-            <form onsubmit="handleActivityUpload(event)">
-                <div class="modal-body">
-                    <input type="text" id="evt-field-title" class="form-input" placeholder="Title (e.g., Run Through Act 2)" required>
-                    <select id="evt-field-type" class="form-input">
-                        <option value="practice">Full Cast Practice</option>
-                        <option value="rehearsal">Tech/Dress Rehearsal</option>
-                        <option value="clinic">Guest Director Clinic</option>
-                    </select>
-                    <input type="date" id="evt-field-start" class="form-input" required>
-                    
-                    <div style="background:var(--bg-canvas); padding:20px; border-radius:15px; margin-bottom:15px;">
-                        <label style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:var(--text-muted); display:block; margin-bottom:10px;">Recurrence Logic</label>
-                        <select id="evt-field-recur" class="form-input" onchange="toggleRepeatLogic(this.value)">
-                            <option value="none">One-time entry</option>
-                            <option value="weekly">Repeat Weekly</option>
+            <form id="form-submit-event" onsubmit="handleActivityUpload(event)">
+                <div class="modal-body-content" style="max-height: 600px; overflow-y: auto;">
+                    <div class="field-group">
+                        <label>Block Title (e.g. Run Act 1)</label>
+                        <input type="text" id="evt-field-title" placeholder="Full Run Through" required>
+                    </div>
+                    <div class="field-group">
+                        <label>Activity Focus</label>
+                        <select id="evt-field-type">
+                            <option value="practice">Practice/Rehearsal</option>
+                            <option value="rehearsal">Tech/Dress Rehearsal</option>
+                            <option value="clinic">Clinic/Performance</option>
                         </select>
-                        <div id="logic-recur-end" style="display:none;">
-                            <input type="date" id="evt-field-until" class="form-input">
-                        </div>
+                    </div>
+                    <div class="field-group">
+                        <label>Scheduled Start Date</label>
+                        <input type="date" id="evt-field-start" required>
                     </div>
                     
-                    <textarea id="evt-field-desc" class="form-input" rows="2" placeholder="Director Notes"></textarea>
+                    <div style="background:var(--bg-canvas); padding:25px; border-radius:20px; border:2px dashed var(--divider);">
+                        <div class="field-group" style="margin-bottom:0;">
+                            <label><i class="fas fa-redo"></i> Recurrence Engine</label>
+                            <select id="evt-field-recur" onchange="toggleRepeatLogic(this.value)">
+                                <option value="none">Exclusive Occurrence</option>
+                                <option value="weekly">Repeat Weekly</option>
+                            </select>
+                        </div>
+                        
+                        <div id="logic-recur-end" style="display:none; margin-top:20px;" class="field-group">
+                            <label>Termination Date</label>
+                            <input type="date" id="evt-field-until">
+                        </div>
+                    </div>
+
+                    <div class="field-group" style="margin-top:25px;">
+                        <label>Director's Rehearsal Notes</label>
+                        <textarea id="evt-field-desc" rows="2" placeholder="Specific scene work, tech cues..."></textarea>
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline" style="width:auto" onclick="openManagedModal('modal-create-event', false)">Discard</button>
-                    <button type="submit" class="btn btn-primary" style="width:auto">Publish Schedule</button>
+                <div class="modal-footer-actions">
+                    <button type="button" class="btn btn-outline" onclick="openManagedModal('modal-create-event', false)">Discard</button>
+                    <button type="submit" class="btn btn-gold">Deploy Schedule</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal: Inspector -->
-    <div id="modal-entry-inspect" class="modal-overlay">
-        <div class="modal-card">
+    <!-- Overlay: Entry Inspector -->
+    <div id="modal-entry-inspect" class="modal-background">
+        <div class="modal-window">
             <div class="modal-header">
-                <h2 id="inspect-title-text">Details</h2>
-                <i class="fas fa-times" onclick="openManagedModal('modal-entry-inspect', false)" style="cursor:pointer"></i>
+                <h2 id="inspect-title-text">Entry Inspect</h2>
+                <i class="fas fa-times" style="cursor:pointer" onclick="openManagedModal('modal-entry-inspect', false)"></i>
             </div>
-            <div class="modal-body">
-                <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                    <span id="inspect-type-label" style="font-weight:900; letter-spacing:1px; text-transform:uppercase;"></span>
-                    <span id="inspect-date-label" style="font-weight:700; color:var(--text-muted)"></span>
+            <div class="modal-body-content" style="padding:50px;">
+                <div style="margin-bottom:40px;">
+                    <div style="display:flex; gap:15px; margin-bottom:20px;">
+                         <span id="inspect-type-label" style="padding:6px 15px; border-radius:10px; color:white; font-size:0.7rem; font-weight:900; text-transform:uppercase;"></span>
+                         <span id="inspect-date-label" style="font-weight:900; color:var(--text-secondary); display:flex; align-items:center;"></span>
+                    </div>
+                    <hr style="margin-bottom:25px; border:0; border-top:2px solid var(--divider);">
+                    <div id="inspect-body-text" style="white-space:pre-wrap; color:var(--text-main); line-height:1.9; font-size:1.15rem; font-weight:500;"></div>
                 </div>
-                <div id="inspect-body-text" style="color:var(--text-primary); line-height:1.6; font-size:1.1rem;"></div>
+                <div class="director-exclusive" id="inspect-admin-zone" style="background:rgba(239, 68, 68, 0.05); padding:25px; border-radius:20px; border:2px solid rgba(239, 68, 68, 0.2);">
+                    <p style="color:var(--color-absence); font-weight:900; font-size:0.75rem; text-transform:uppercase; margin-bottom:15px; letter-spacing:1px;"><i class="fas fa-exclamation-triangle"></i> Administrative Danger Zone</p>
+                    <button class="btn btn-danger" style="width:100%; padding:18px;" onclick="executeDeactivation()">
+                        <i class="fas fa-trash-alt"></i> Expunge This Entry
+                    </button>
+                </div>
             </div>
-            <div class="modal-footer">
-                <div class="director-exclusive" style="width: 100%;">
-                    <button class="btn btn-primary" style="background:#ef4444;" onclick="executeDeactivation()">Delete Record</button>
-                </div>
-                <button class="btn btn-outline" style="width:auto" onclick="openManagedModal('modal-entry-inspect', false)">Close</button>
+            <div class="modal-footer-actions">
+                <button class="btn btn-outline" style="width:100%" onclick="openManagedModal('modal-entry-inspect', false)">Back to Board</button>
             </div>
         </div>
     </div>
 
     <!-- Feedback Layer -->
-    <div id="toast"></div>
+    <div id="toast-manager" class="toast-popup"></div>
 
     <script>
+        /**
+         * 1. APPLICATION STATE & CONFIGURATION
+         * ------------------------------------------------------------
+         */
         const SUPABASE_PROJECT_URL = 'https://tgrlrejnngmmofqfunmv.supabase.co';
         const SUPABASE_ANON_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRncmxyZWpubmdtbW9mcWZ1bm12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5Mzk1MDYsImV4cCI6MjA4NDUxNTUwNn0.lNNjZggoIb8zBH1T-t5wP8l5xphdXXmHCX9vKXA1xI4';
         
@@ -502,45 +755,78 @@
         let isAuthorizedDirector = false;
         let focusedEntryId = null;
 
+        /**
+         * 2. INITIALIZATION ENGINE
+         * ------------------------------------------------------------
+         */
         window.addEventListener('DOMContentLoaded', async () => {
             initializeDatabase();
             initializeCalendarWidget();
             await synchronizeProductionData();
             
+            // Clean-up loader after initialization
             setTimeout(() => {
-                document.getElementById('app-loader').style.display = 'none';
-            }, 800);
+                const mask = document.getElementById('loading-mask');
+                mask.style.opacity = '0';
+                setTimeout(() => mask.style.display = 'none', 400);
+            }, 750);
         });
 
         function initializeDatabase() {
-            supabaseClientInstance = supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_ANON_API_KEY);
+            try {
+                // Instantiating the global supabase client
+                supabaseClientInstance = supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_ANON_API_KEY);
+            } catch (error) {
+                console.error("Infrastructure Error:", error);
+                fireToast("Environment Error: Data won't sync.");
+            }
         }
 
+        /**
+         * 3. CALENDAR ARCHITECTURE
+         * Fixed Date Shift Fix: We treat input strings as literal ISO local dates.
+         * ------------------------------------------------------------
+         */
         function initializeCalendarWidget() {
             const calendarEl = document.getElementById('main-calendar-widget');
             mainCalendarInstance = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
-                headerToolbar: { left: 'prev,next', center: 'title', right: 'dayGridMonth,timeGridWeek' },
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek'
+                },
+                // Maps our cache to FullCalendar object format
                 events: (info, callback) => {
                     const mappedEvents = productionRecordsCache.map(entry => ({
                         id: entry.id,
-                        title: entry.type === 'absence' ? `X: ${entry.title}` : entry.title,
-                        start: entry.start_time,
+                        title: entry.type === 'absence' ? `(ABS) ${entry.title}` : entry.title,
+                        start: entry.start_time, /* Stripped YYYY-MM-DD prevents TZ shift */
                         className: `status-${entry.type}`,
-                        backgroundColor: `var(--${entry.type})`,
-                        borderColor: `var(--${entry.type})`,
+                        extendedProps: { ...entry }
                     }));
                     callback(mappedEvents);
                 },
                 eventClick: (info) => openInspectorPortal(info.event.id),
                 height: '100%',
-                displayEventTime: false
+                displayEventTime: false,
+                dayMaxEvents: true
             });
             mainCalendarInstance.render();
         }
 
+        /**
+         * 4. DATA PERSISTENCE LAYER
+         * ------------------------------------------------------------
+         */
         async function synchronizeProductionData() {
-            const { data } = await supabaseClientInstance.from('events').select('*').order('start_time', { ascending: true });
+            if (!supabaseClientInstance) return;
+
+            const { data, error } = await supabaseClientInstance
+                .from('events')
+                .select('*')
+                .order('start_time', { ascending: true });
+
             if (data) {
                 productionRecordsCache = data;
                 mainCalendarInstance.refetchEvents();
@@ -550,132 +836,202 @@
         }
 
         async function uploadProductionRecord(payload) {
-            const { error } = await supabaseClientInstance.from('events').insert(Array.isArray(payload) ? payload : [payload]);
-            if (!error) {
-                fireToast("Schedule Updated.");
+            // Supports both single objects and arrays (for recurrence)
+            const { error } = await supabaseClientInstance
+                .from('events')
+                .insert(Array.isArray(payload) ? payload : [payload]);
+
+            if (error) {
+                fireToast("Sync Conflict: Save aborted.");
+            } else {
+                fireToast("System Sync Successful.");
                 await synchronizeProductionData();
             }
         }
 
         async function executeDeactivation() {
-            if (!confirm("Remove this activity permanently?")) return;
-            const { error } = await supabaseClientInstance.from('events').delete().eq('id', focusedEntryId);
+            if (!isAuthorizedDirector) return;
+            if (!confirm("Confirm Record Expungement? This cannot be undone.")) return;
+            
+            const { error } = await supabaseClientInstance
+                .from('events')
+                .delete()
+                .eq('id', focusedEntryId);
+
             if (!error) {
-                fireToast("Record Deleted.");
+                fireToast("Record successfully expunged.");
                 openManagedModal('modal-entry-inspect', false);
                 await synchronizeProductionData();
             }
         }
 
-        function activateView(target) {
-            const cal = document.getElementById('view-calendar-container');
-            const list = document.getElementById('view-schedule-container');
-            
-            document.querySelectorAll('.rail-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`rail-${target}`).classList.add('active');
+        /**
+         * 5. UI CONTROLLERS & WORKFLOW
+         * ------------------------------------------------------------
+         */
+        function activateView(targetView) {
+            const calViewEl = document.getElementById('view-calendar-container');
+            const listViewEl = document.getElementById('view-schedule-container');
+            const calTabEl = document.getElementById('tab-calendar');
+            const listTabEl = document.getElementById('tab-schedule');
 
-            if (target === 'calendar') {
-                cal.style.display = 'block'; list.style.display = 'none';
+            if (targetView === 'calendar') {
+                calViewEl.style.display = 'flex';
+                listViewEl.style.display = 'none';
+                calTabEl.classList.add('active');
+                listTabEl.classList.remove('active');
                 mainCalendarInstance.updateSize();
             } else {
-                cal.style.display = 'none'; list.style.display = 'block';
+                calViewEl.style.display = 'none';
+                listViewEl.style.display = 'flex';
+                listTabEl.classList.add('active');
+                calTabEl.classList.remove('active');
             }
         }
 
         function authorizeDirector() {
-            if (document.getElementById('field-director-pass').value === "OAP2026!") {
+            const passwordEntry = document.getElementById('field-director-pass').value;
+            if (passwordEntry === "OAP2026!") {
                 isAuthorizedDirector = true;
                 document.getElementById('production-app').classList.add('is-director-authorized');
-                document.getElementById('app-title-text').innerText = "Director Suite";
+                document.getElementById('app-title-text').innerText = "Director Portfolio";
                 openManagedModal('modal-director-login', false);
-                fireToast("Clearance Granted");
-            } else fireToast("Access Denied");
+                fireToast("Director Verification Identity Established.");
+                document.getElementById('field-director-pass').value = "";
+            } else {
+                fireToast("Authorization Fail: Restricted Area.");
+            }
         }
 
         function terminateSession() {
             isAuthorizedDirector = false;
             document.getElementById('production-app').classList.remove('is-director-authorized');
-            document.getElementById('app-title-text').innerText = "Production Central";
-            fireToast("Director Logged Out");
+            document.getElementById('app-title-text').innerText = "Director Central";
+            fireToast("Session Cleared.");
         }
 
-        function toggleRepeatLogic(v) {
-            document.getElementById('logic-recur-end').style.display = (v === 'weekly' ? 'block' : 'none');
+        function toggleRepeatLogic(value) {
+            const endSection = document.getElementById('logic-recur-end');
+            endSection.style.display = (value === 'weekly') ? 'block' : 'none';
         }
 
-        function handleAbsenceUpload(e) {
-            e.preventDefault();
-            uploadProductionRecord({
+        /**
+         * 6. POST-LOAD OPERATORS (FORM HANDLING)
+         * ------------------------------------------------------------
+         */
+        function handleAbsenceUpload(event) {
+            event.preventDefault();
+            // Critical: Capturing date strictly as string to avoid UTC offset
+            const inputDateStr = document.getElementById('abs-field-date').value;
+            
+            const packet = {
                 title: document.getElementById('abs-field-name').value,
-                start_time: document.getElementById('abs-field-date').value,
+                start_time: inputDateStr, 
                 description: document.getElementById('abs-field-notes').value,
                 type: 'absence'
-            });
+            };
+            
+            uploadProductionRecord(packet);
             openManagedModal('modal-report-absence', false);
-            e.target.reset();
+            event.target.reset();
         }
 
-        function handleActivityUpload(e) {
-            e.preventDefault();
+        function handleActivityUpload(event) {
+            event.preventDefault();
+            const title = document.getElementById('evt-field-title').value;
+            const type = document.getElementById('evt-field-type').value;
             const startStr = document.getElementById('evt-field-start').value;
             const recurType = document.getElementById('evt-field-recur').value;
             const untilStr = document.getElementById('evt-field-until').value;
-            
+            const notes = document.getElementById('evt-field-desc').value;
+
+            // Recurrence Engine Execution
             if (recurType === 'weekly' && untilStr) {
                 let batch = [];
+                // Initialize using local timezone date constructor logic
                 let cursor = new Date(startStr + 'T00:00:00');
-                const end = new Date(untilStr + 'T23:59:59');
-                while (cursor <= end) {
+                const terminal = new Date(untilStr + 'T23:59:59');
+
+                while (cursor <= terminal) {
+                    const formattedDateStr = cursor.toISOString().split('T')[0];
                     batch.push({
-                        title: document.getElementById('evt-field-title').value,
-                        type: document.getElementById('evt-field-type').value,
-                        start_time: cursor.toISOString().split('T')[0],
-                        description: document.getElementById('evt-field-desc').value
+                        title: title,
+                        type: type,
+                        start_time: formattedDateStr,
+                        description: notes
                     });
+                    // Increment 7 iterations (days)
                     cursor.setDate(cursor.getDate() + 7);
                 }
                 uploadProductionRecord(batch);
             } else {
                 uploadProductionRecord({
-                    title: document.getElementById('evt-field-title').value,
-                    type: document.getElementById('evt-field-type').value,
+                    title: title,
+                    type: type,
                     start_time: startStr,
-                    description: document.getElementById('evt-field-desc').value
+                    description: notes
                 });
             }
-            openManagedModal('modal-create-event', false); e.target.reset();
+
+            openManagedModal('modal-create-event', false);
+            event.target.reset();
+            toggleRepeatLogic('none');
         }
 
+        /**
+         * 7. VISUAL RENDERERS & UTILS
+         * ------------------------------------------------------------
+         */
         function renderProductionScheduleList() {
             const sink = document.getElementById('schedule-render-sink');
-            sink.innerHTML = productionRecordsCache.map(entry => {
-                const date = new Date(entry.start_time + 'T00:00:00');
-                return `
-                <div class="schedule-item">
-                    <div class="item-date">
-                        <span class="day">${date.getDate()}</span>
-                        <span class="month">${date.toLocaleDateString('en-US', { month: 'short' })}</span>
+            sink.innerHTML = "";
+
+            if (productionRecordsCache.length === 0) {
+                sink.innerHTML = `<div style="text-align:center; padding:150px; opacity:0.35; font-weight:700;">Zero production logs found. Empty schedule.</div>`;
+                return;
+            }
+
+            productionRecordsCache.forEach(entry => {
+                // Parsing with forced local context
+                const dateInstance = new Date(entry.start_time + 'T00:00:00');
+                const card = document.createElement('div');
+                card.className = 'list-entry-card';
+                card.style.borderLeft = `10px solid var(--color-${entry.type})`;
+                
+                card.innerHTML = `
+                    <div class="date-badge">
+                        <span class="big-day">${dateInstance.getDate()}</span>
+                        <span class="month-label">${dateInstance.toLocaleDateString('en-US', { month: 'short' })}</span>
                     </div>
-                    <div class="item-body">
-                        <h4>${entry.title}</h4>
-                        <span class="item-badge" style="background:var(--${entry.type}); color:white;">${entry.type}</span>
+                    <div class="content-text-sink">
+                        <h4 style="margin:0; font-size:1.5rem; font-weight:900; color:var(--text-main);">${entry.title}</h4>
+                        <div style="display:flex; gap:10px; align-items:center; margin-top:5px;">
+                            <span style="font-size:0.75rem; text-transform:uppercase; font-weight:900; color:var(--color-${entry.type}); letter-spacing:1px;">${entry.type}</span>
+                            <span style="width:4px; height:4px; border-radius:50%; background:var(--divider);"></span>
+                            <span style="font-size:0.8rem; font-weight:600; color:var(--text-secondary);">Production Log #${entry.id.toString().slice(-4)}</span>
+                        </div>
                     </div>
-                    <div>
-                        <button class="btn btn-outline" style="padding:10px;" onclick="openInspectorPortal('${entry.id}')"><i class="fas fa-eye"></i></button>
+                    <div class="action-btn-sink">
+                        <button class="btn btn-outline" style="padding:14px 22px; font-size:0.8rem; border-radius:12px; border-width:2px; border-color:var(--divider); color:var(--text-secondary);" onclick="openInspectorPortal('${entry.id}')">
+                            <i class="fas fa-expand-alt"></i> Preview
+                        </button>
                     </div>
-                </div>`;
-            }).join('') || '<div style="text-align:center; padding:100px; opacity:0.3;">Timeline Empty</div>';
+                `;
+                sink.appendChild(card);
+            });
         }
 
         function openInspectorPortal(id) {
             const entry = productionRecordsCache.find(x => x.id === id);
             if (!entry) return;
+            
             focusedEntryId = id;
             document.getElementById('inspect-title-text').innerText = entry.title;
             document.getElementById('inspect-type-label').innerText = entry.type;
-            document.getElementById('inspect-type-label').style.color = `var(--${entry.type})`;
+            document.getElementById('inspect-type-label').style.background = `var(--color-${entry.type})`;
             document.getElementById('inspect-date-label').innerText = entry.start_time;
-            document.getElementById('inspect-body-text').innerText = entry.description || "Production Entry: No additional notes.";
+            document.getElementById('inspect-body-text').innerText = entry.description || "The stage manager has not provided supplemental technical documentation for this activity block.";
+            
             openManagedModal('modal-entry-inspect', true);
         }
 
@@ -684,14 +1040,42 @@
             document.getElementById('count-absence').innerText = productionRecordsCache.filter(x => x.type === 'absence').length;
         }
 
-        function openManagedModal(id, v) { document.getElementById(id).style.display = v ? 'flex' : 'none'; }
-
-        function fireToast(m) {
-            const t = document.getElementById('toast');
-            t.innerText = m; t.style.display = 'block';
-            setTimeout(() => t.style.display = 'none', 3000);
+        function openManagedModal(id, visible) {
+            document.getElementById(id).style.display = visible ? 'flex' : 'none';
         }
 
+        function fireToast(message) {
+            const t = document.getElementById('toast-manager');
+            t.innerText = message;
+            t.style.display = 'block';
+            setTimeout(() => {
+                t.style.display = 'none';
+            }, 3500);
+        }
+
+        // Catch clicks on modal backdrop to close windows
+        window.onclick = (event) => {
+            if (event.target.classList.contains('modal-background')) {
+                event.target.style.display = 'none';
+            }
+        };
+
     </script>
+    
+    
+   <!-- Derrick's Web Service Signature Mark -->
+<a href="https://derrickswebservices.github.io/" 
+   target="_blank" 
+   style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; text-decoration: none; font-family: 'Plus Jakarta Sans', sans-serif, system-ui; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 15px rgba(0,0,0,0.3);"
+   onmouseover="this.style.transform='translateY(-3px)'; this.style.borderColor='rgba(99, 102, 241, 0.8)'; this.style.boxShadow='0 8px 25px rgba(99, 102, 241, 0.2)';"
+   onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(99, 102, 241, 0.3)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.3)';"
+>
+    <div style="width: 8px; height: 8px; background: #6366f1; border-radius: 50%; box-shadow: 0 0 10px #6366f1;"></div>
+    <span style="color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase;">
+        Built and Hosted by <span style="color: #fff; font-weight: 700;">Derrick's Web Service</span>
+    </span>
+</a>
+
+
 </body>
 </html>
