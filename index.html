@@ -81,9 +81,9 @@
             font-family: 'Outfit', sans-serif;
             background-color: var(--bg-canvas);
             color: var(--text-main);
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden; /* Lock the primary scroll */
+            min-height: 100vh;
+            width: 100%;
+            overflow-x: hidden; /* Lock horizontal overflow */
             display: flex;
             flex-direction: column;
         }
@@ -214,7 +214,7 @@
             grid-template-columns: 340px 1fr;
             gap: 30px;
             padding: 30px;
-            overflow: hidden; /* Ensures only content panes scroll */
+            min-height: 0; /* Let grid expand */
         }
 
         @media (max-width: 1200px) {
@@ -230,9 +230,7 @@
             display: flex;
             flex-direction: column;
             gap: 25px;
-            height: 100%;
-            overflow-y: auto;
-            padding-right: 10px;
+            height: fit-content;
         }
 
         .sidebar::-webkit-scrollbar { width: 5px; }
@@ -324,25 +322,25 @@
             border-radius: var(--radius-lg);
             padding: 30px;
             box-shadow: var(--shadow-lg);
-            height: 100%;
+            height: fit-content;
+            min-height: 600px;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
             position: relative;
             border: 1px solid var(--divider);
         }
 
         #view-calendar-container, #view-schedule-container {
             flex-grow: 1;
-            height: 100%;
-            overflow: hidden;
+            height: auto;
             display: flex;
             flex-direction: column;
         }
 
         #main-calendar-widget {
-            height: 100% !important;
+            height: auto !important;
             flex-grow: 1;
+            min-height: 700px;
         }
 
         /* Calendar Skinning */
@@ -948,9 +946,9 @@
                     callback(mappedEvents);
                 },
                 eventClick: (info) => openInspectorPortal(info.event.id),
-                height: '100%',
+                height: 'auto',
                 displayEventTime: false,
-                dayMaxEvents: true
+                dayMaxEvents: false
             });
             mainCalendarInstance.render();
         }
@@ -1021,6 +1019,7 @@
                 calTabEl.classList.add('active');
                 listTabEl.classList.remove('active');
                 mainCalendarInstance.updateSize();
+                mainCalendarInstance.render();
             } else {
                 calViewEl.style.display = 'none';
                 listViewEl.style.display = 'flex';
