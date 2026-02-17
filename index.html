@@ -807,6 +807,45 @@
         </div>
     </div>
 
+    <!-- Overlay: Edit Event -->
+    <div id="modal-edit-event" class="modal-background">
+        <div class="modal-window">
+            <div class="modal-header">
+                <h2>Modify Activity</h2>
+                <i class="fas fa-times" style="cursor:pointer" onclick="openManagedModal('modal-edit-event', false)"></i>
+            </div>
+            <form id="form-edit-event" onsubmit="handleActivityEdit(event)">
+                <div class="modal-body-content" style="max-height: 600px; overflow-y: auto;">
+                    <div class="field-group">
+                        <label>Block Title</label>
+                        <input type="text" id="edit-evt-field-title" required>
+                    </div>
+                    <div class="field-group">
+                        <label>Activity Focus</label>
+                        <select id="edit-evt-field-type">
+                            <option value="practice">Practice/Rehearsal</option>
+                            <option value="rehearsal">Tech/Dress Rehearsal</option>
+                            <option value="clinic">Clinic/Performance</option>
+                            <option value="absence">Student Absence</option>
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label>Scheduled Start Date</label>
+                        <input type="date" id="edit-evt-field-start" required>
+                    </div>
+                    <div class="field-group" style="margin-top:25px;">
+                        <label>Director's Rehearsal Notes</label>
+                        <textarea id="edit-evt-field-desc" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer-actions">
+                    <button type="button" class="btn btn-outline" onclick="openManagedModal('modal-edit-event', false)">Discard Changes</button>
+                    <button type="submit" class="btn btn-gold">Update Schedule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Overlay: Entry Inspector -->
     <div id="modal-entry-inspect" class="modal-background">
         <div class="modal-window">
@@ -825,6 +864,9 @@
                 </div>
                 <div class="director-exclusive" id="inspect-admin-zone" style="background:rgba(239, 68, 68, 0.05); padding:25px; border-radius:20px; border:2px solid rgba(239, 68, 68, 0.2);">
                     <p style="color:var(--color-absence); font-weight:900; font-size:0.75rem; text-transform:uppercase; margin-bottom:15px; letter-spacing:1px;"><i class="fas fa-exclamation-triangle"></i> Administrative Danger Zone</p>
+                    <button class="btn btn-gold" style="width:100%; margin-bottom:12px; background: var(--poth-maroon); color:white;" onclick="openEditPortal()">
+                        <i class="fas fa-edit"></i> Edit Entry Details
+                    </button>
                     <button class="btn btn-danger" style="width:100%; padding:18px;" onclick="executeDeactivation()">
                         <i class="fas fa-trash-alt"></i> Expunge This Entry
                     </button>
@@ -1074,6 +1116,45 @@
             openManagedModal('modal-create-event', false);
             event.target.reset();
             toggleRepeatLogic('none');
+        }
+
+        function openEditPortal() {
+            const entry = productionRecordsCache.find(x => x.id == focusedEntryId);
+            if (!entry) return;
+            
+            openManagedModal('modal-entry-inspect', false);
+            
+            // Populate edit fields
+            document.getElementById('edit-evt-field-title').value = entry.title;
+            document.getElementById('edit-evt-field-type').value = entry.type;
+            document.getElementById('edit-evt-field-start').value = entry.start_time;
+            document.getElementById('edit-evt-field-desc').value = entry.description || "";
+            
+            openManagedModal('modal-edit-event', true);
+        }
+
+        async function handleActivityEdit(event) {
+            event.preventDefault();
+            
+            const payload = {
+                title: document.getElementById('edit-evt-field-title').value,
+                type: document.getElementById('edit-evt-field-type').value,
+                start_time: document.getElementById('edit-evt-field-start').value,
+                description: document.getElementById('edit-evt-field-desc').value
+            };
+
+            const { error } = await supabaseClientInstance
+                .from('events')
+                .update(payload)
+                .eq('id', focusedEntryId);
+
+            if (error) {
+                fireToast("Update Failed: Database connection error.");
+            } else {
+                fireToast("Changes saved successfully.");
+                openManagedModal('modal-edit-event', false);
+                await synchronizeProductionData();
+            }
         }
 
         /**
