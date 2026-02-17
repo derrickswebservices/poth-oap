@@ -400,7 +400,7 @@
 
         /* 
         ================================================================
-        8. OVERLAY & MODAL SYSTEM
+        8. OVERLAY & MODAL SYSTEM (WIDER & RESPONSIVE)
         ================================================================
         */
         .modal-background {
@@ -411,7 +411,10 @@
 
         .modal-window {
             background: var(--white);
-            width: 100%; max-width: 600px;
+            width: 95%; max-width: 1000px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
             border-radius: var(--radius-lg);
             overflow: hidden;
             box-shadow: 0 40px 100px -20px rgba(0,0,0,0.3);
@@ -429,11 +432,16 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 5px solid var(--poth-gold);
+            flex-shrink: 0;
         }
 
         .modal-header h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; margin: 0; }
 
-        .modal-body-content { padding: 40px; }
+        .modal-body-content { 
+            padding: 30px 40px; 
+            overflow-y: auto; 
+            flex-grow: 1; 
+        }
 
         .field-group { margin-bottom: 25px; }
         .field-group label { display: block; margin-bottom: 12px; font-weight: 900; font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
@@ -455,6 +463,7 @@
             display: flex;
             justify-content: flex-end;
             gap: 15px;
+            flex-shrink: 0;
         }
 
         /* 
@@ -759,7 +768,7 @@
                 <i class="fas fa-times" style="cursor:pointer" onclick="openManagedModal('modal-create-event', false)"></i>
             </div>
             <form id="form-submit-event" onsubmit="handleActivityUpload(event)">
-                <div class="modal-body-content" style="max-height: 600px; overflow-y: auto;">
+                <div class="modal-body-content">
                     <div class="field-group">
                         <label>Block Title (e.g. Run Act 1)</label>
                         <input type="text" id="evt-field-title" placeholder="Full Run Through" required>
@@ -813,7 +822,7 @@
                 <i class="fas fa-times" style="cursor:pointer" onclick="openManagedModal('modal-edit-event', false)"></i>
             </div>
             <form id="form-edit-event" onsubmit="handleActivityEdit(event)">
-                <div class="modal-body-content" style="max-height: 600px; overflow-y: auto;">
+                <div class="modal-body-content">
                     <div class="field-group">
                         <label>Block Title</label>
                         <input type="text" id="edit-evt-field-title" required>
@@ -851,7 +860,7 @@
                 <h2 id="inspect-title-text">Entry Inspect</h2>
                 <i class="fas fa-times" style="cursor:pointer" onclick="openManagedModal('modal-entry-inspect', false)"></i>
             </div>
-            <div class="modal-body-content" style="padding:50px;">
+            <div class="modal-body-content" style="padding:30px 40px;">
                 <div style="margin-bottom:40px;">
                     <div style="display:flex; gap:15px; margin-bottom:20px;">
                          <span id="inspect-type-label" style="padding:6px 15px; border-radius:10px; color:white; font-size:0.7rem; font-weight:900; text-transform:uppercase;"></span>
@@ -948,7 +957,7 @@
                 eventClick: (info) => openInspectorPortal(info.event.id),
                 height: 'auto',
                 displayEventTime: false,
-                dayMaxEvents: false
+                dayMaxEvents: true
             });
             mainCalendarInstance.render();
         }
